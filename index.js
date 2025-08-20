@@ -1,6 +1,7 @@
 const { chromium } = require("playwright");
 const fs = require("fs");
 const { randomInt, humanType, smoothScroll } = require("./utils");
+const { logSession } = require("./logger");
 
 // Load config
 const config = JSON.parse(fs.readFileSync("config.json", "utf8"));
@@ -24,15 +25,15 @@ function normalizeUrl(url) {
   // Iterate through each config object instead of keywords array
   for (const configItem of config) {
     const keyword = configItem.keywords;
-    // const userAgent =
-    //   configItem.user_agents[randomInt(0, configItem.user_agents.length - 1)];
-    // const proxy =
-    //   configItem.proxies.length > 0
-    //     ? configItem.proxies[randomInt(0, configItem.proxies.length - 1)]
-    //     : null;
+    const userAgent =
+      configItem.user_agents[randomInt(0, configItem.user_agents.length - 1)];
+    const proxy =
+      configItem.proxies.length > 0
+        ? configItem.proxies[randomInt(0, configItem.proxies.length - 1)]
+        : null;
 
     console.log(
-      `Launching Keyword: ${keyword}`
+      `Launching with UA: ${userAgent}, Proxy: ${proxy || "none"}, Keyword: ${keyword}`
     );
 
     // Launch browser
@@ -41,7 +42,7 @@ function normalizeUrl(url) {
       // proxy: proxy ? { server: proxy } : undefined
     });
 
-    const context = await browser.newContext();
+    const context = await browser.newContext({userAgent});
     const page = await context.newPage();
 
     // 1. Go to Bing
@@ -258,6 +259,7 @@ function normalizeUrl(url) {
     }
 
     // 6. Log session
+    logSession({ keyword, userAgent, proxy, targetFound });
 
     // 7. Close browser properly
     try {
