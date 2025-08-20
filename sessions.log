@@ -120,3 +120,6 @@
 [2025-08-20T05:01:21.344Z] {"keyword":"weight loss tips","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/110.0.1587.57","proxy":"http://user:pass@proxy1.example.com:8080","targetFound":false}
 [2025-08-20T05:03:20.467Z] {"keyword":"healthy diet plans","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/110.0.1587.57","proxy":"http://user:pass@proxy2.example.com:8080","targetFound":false}
 [2025-08-20T05:13:55.543Z] {"keyword":"weight loss tips","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/110.0.1587.57","proxy":"http://user:pass@proxy1.example.com:8080","targetFound":false}
+[2025-08-20T06:52:16.762Z] {"keyword":"weight loss tips","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Edge/113.0.1774.35","proxy":"http://user:pass@proxy2.example.com:8080","targetFound":false}
+[2025-08-20T06:53:53.670Z] {"keyword":"exercise for fat loss","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Edge/113.0.1774.35","proxy":"http://user:pass@proxy1.example.com:8080","targetFound":false}
+[2025-08-20T06:55:33.695Z] {"keyword":"healthy diet plans","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/110.0.1587.57","proxy":"http://user:pass@proxy2.example.com:8080","targetFound":false}

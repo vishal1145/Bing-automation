@@ -22,12 +22,14 @@ function normalizeUrl(url) {
 }
 
 (async () => {
-  for (const keyword of config.keywords) {
+  // Iterate through each config object instead of keywords array
+  for (const configItem of config) {
+    const keyword = configItem.keywords;
     const userAgent =
-      config.user_agents[randomInt(0, config.user_agents.length - 1)];
+      configItem.user_agents[randomInt(0, configItem.user_agents.length - 1)];
     const proxy =
-      config.proxies.length > 0
-        ? config.proxies[randomInt(0, config.proxies.length - 1)]
+      configItem.proxies.length > 0
+        ? configItem.proxies[randomInt(0, configItem.proxies.length - 1)]
         : null;
 
     console.log(
@@ -61,8 +63,8 @@ function normalizeUrl(url) {
     let maxPages = 8;
     let currentPage = 1;
 
-    const targetUrl = config.target_url.toLowerCase();
-    const targetDomain = new URL(config.target_url).hostname.replace(
+    const targetUrl = configItem.target_url.toLowerCase();
+    const targetDomain = new URL(configItem.target_url).hostname.replace(
       /^www\./,
       ""
     );
@@ -148,7 +150,7 @@ function normalizeUrl(url) {
               
               // 5. Enhanced random scrolling + interaction on the target page
               const stay =
-                randomInt(config.stay_duration.min, config.stay_duration.max) * 1000;
+                randomInt(configItem.stay_duration.min, configItem.stay_duration.max) * 1000;
               console.log(`🔄 Staying on target page for ${stay / 1000} seconds with human-like behavior...`);
 
               const start = Date.now();
