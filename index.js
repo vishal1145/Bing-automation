@@ -22,7 +22,6 @@ function normalizeUrl(url) {
 }
 
 (async () => {
-  // Iterate through each config object instead of keywords array
   for (const configItem of config) {
     const keyword = configItem.keywords;
     const userAgent =
@@ -42,7 +41,7 @@ function normalizeUrl(url) {
       // proxy: proxy ? { server: proxy } : undefined
     });
 
-    const context = await browser.newContext({userAgent});
+    const context = await browser.newContext({ userAgent });
     const page = await context.newPage();
 
     // 1. Go to Bing
