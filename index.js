@@ -1,7 +1,6 @@
 const { chromium } = require("playwright");
 const fs = require("fs");
 const { randomInt, humanType, smoothScroll } = require("./utils");
-const { logSession } = require("./logger");
 
 // Load config
 const config = JSON.parse(fs.readFileSync("config.json", "utf8"));
@@ -259,7 +258,6 @@ function normalizeUrl(url) {
     }
 
     // 6. Log session
-    logSession({ keyword, userAgent, proxy, targetFound });
 
     // 7. Close browser properly
     try {
