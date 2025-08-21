@@ -26,7 +26,7 @@
 },
 {
   "keywords": "healthy diet plans",
-  "target_url": "https://www.udemy.com/",
+  "target_url": "https://www.healthline.com/",
   "proxies": [
     "http://user:pass@proxy1.example.com:8080",
     "http://user:pass@proxy2.example.com:8080"
