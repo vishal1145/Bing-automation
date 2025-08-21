@@ -1,6 +1,6 @@
 [{
   "keywords": "weight loss tips",
-  "target_url": "https://www.healthline.com/nutrition/",
+  "target_url": "https://www.healthline.com/",
   "proxies": [
     "http://user:pass@proxy1.example.com:8080",
     "http://user:pass@proxy2.example.com:8080"
@@ -13,7 +13,7 @@
 },
 {
   "keywords": "exercise for fat loss",
-  "target_url": "https://www.healthline.com/nutrition/",
+  "target_url": "https://www.healthline.com/",
   "proxies": [
     "http://user:pass@proxy1.example.com:8080",
     "http://user:pass@proxy2.example.com:8080"
@@ -26,7 +26,7 @@
 },
 {
   "keywords": "healthy diet plans",
-  "target_url": "https://www.healthline.com/nutrition/",
+  "target_url": "https://www.udemy.com/",
   "proxies": [
     "http://user:pass@proxy1.example.com:8080",
     "http://user:pass@proxy2.example.com:8080"
