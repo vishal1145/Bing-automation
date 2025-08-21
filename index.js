@@ -1,6 +1,6 @@
 const { chromium } = require("playwright");
 const fs = require("fs");
-const { randomInt, humanType, smoothScroll } = require("./utils");
+const { randomInt, humanType, smoothScroll, humanMouseMove, humanPause, humanClick } = require("./utils");
 const { logSession } = require("./logger");
 
 // Load config
@@ -46,16 +46,20 @@ function normalizeUrl(url) {
 
     // 1. Go to Bing
     await page.goto("https://www.bing.com", { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(randomInt(2000, 4000)); // wait 2-4s before typing
-
-    // 2. Type keyword with human-like typing
+    
+    // Human-like pause before starting to type (reading the page)
+    await humanPause(page, 'reading');
+    
+    // 2. Type keyword with enhanced human-like typing
     await humanType(page, keyword);
-    await page.waitForTimeout(randomInt(1000, 2500));
+    
+    // Natural pause before pressing Enter
+    await humanPause(page, 'thinking');
     await page.keyboard.press("Enter");
 
-    // 3. Wait for results
+    // 3. Wait for results with natural reading time
     await page.waitForSelector("li.b_algo h2 a", { timeout: 10000 });
-    await page.waitForTimeout(randomInt(1500, 3000));
+    await humanPause(page, 'reading');
 
     // 4. Search for target site
     let targetFound = false;
@@ -124,19 +128,29 @@ function normalizeUrl(url) {
               href.toLowerCase().includes(targetDomain)
             ) {
               try {
-                // Scroll to the link
+                // Scroll to the link with human-like movement
                 await link.scrollIntoViewIfNeeded();
-                await page.waitForTimeout(randomInt(500, 1500));
+                await humanPause(page, 'scrolling');
                 
-                // Hover over the link
+                // Get link position for human-like mouse movement
+                const linkBox = await link.boundingBox();
+                if (linkBox) {
+                  const targetX = linkBox.x + linkBox.width / 2;
+                  const targetY = linkBox.y + linkBox.height / 2;
+                  
+                  // Move mouse to link with natural curved path
+                  await humanMouseMove(page, targetX, targetY);
+                }
+                
+                // Hover over the link with natural timing
                 await link.hover();
-                await page.waitForTimeout(randomInt(800, 2000));
+                await humanPause(page, 'hovering');
                 
                 // Listen for new page/tab before clicking
                 const pagePromise = context.waitForEvent('page');
                 
-                // Click with human-like delay
-                await link.click({ delay: randomInt(100, 300) });
+                // Click with human-like behavior
+                await humanClick(page, link, 'normal');
                 
                 // Wait for new page to open
                 const newPage = await pagePromise;
@@ -174,16 +188,16 @@ function normalizeUrl(url) {
                       break;
                     }
 
-                    // Random smooth scrolling (2-5 scrolls)
+                    // Random smooth scrolling with enhanced human-like behavior
                     const scrolls = randomInt(2, 5);
                     for (let i = 0; i < scrolls; i++) {
                       if (targetPage.isClosed()) break;
                       await smoothScroll(targetPage, randomInt(1, 3));
-                      await targetPage.waitForTimeout(randomInt(1000, 3000));
+                      await humanPause(targetPage, 'scrolling');
                       scrollCount++;
                     }
 
-                    // Random hover over various elements on the target page
+                    // Random hover over various elements with natural mouse movement
                     if (!targetPage.isClosed()) {
                       const elements = await targetPage.$$("a, button, img, h1, h2, h3, p");
                       if (elements.length > 0) {
@@ -193,9 +207,20 @@ function normalizeUrl(url) {
                           const el = elements[randomInt(0, elements.length - 1)];
                           try {
                             await el.scrollIntoViewIfNeeded();
-                            await targetPage.waitForTimeout(randomInt(300, 800));
+                            await humanPause(targetPage, 'scrolling');
+                            
+                            // Get element position for human-like mouse movement
+                            const elBox = await el.boundingBox();
+                            if (elBox) {
+                              const targetX = elBox.x + elBox.width / 2;
+                              const targetY = elBox.y + elBox.height / 2;
+                              
+                              // Move mouse with natural curved path
+                              await humanMouseMove(targetPage, targetX, targetY);
+                            }
+                            
                             await el.hover();
-                            await targetPage.waitForTimeout(randomInt(500, 2000));
+                            await humanPause(targetPage, 'hovering');
                             hoverCount++;
                           } catch (e) {
                             // ignore hover failures
@@ -204,19 +229,20 @@ function normalizeUrl(url) {
                       }
                     }
 
-                    // Random mouse movements and pauses
+                    // Enhanced random mouse movements with natural curves
                     if (!targetPage.isClosed()) {
-                      await targetPage.waitForTimeout(randomInt(2000, 6000));
+                      await humanPause(targetPage, 'reading');
                       
-                      // Occasionally move mouse to random position
+                      // Occasionally move mouse to random position with natural movement
                       if (randomInt(1, 10) <= 3) {
                         try {
                           const viewport = targetPage.viewportSize();
                           if (viewport) {
-                            await targetPage.mouse.move(
-                              randomInt(100, viewport.width - 100),
-                              randomInt(100, viewport.height - 100)
-                            );
+                            const randomX = randomInt(100, viewport.width - 100);
+                            const randomY = randomInt(100, viewport.height - 100);
+                            
+                            // Move mouse with natural curved path
+                            await humanMouseMove(targetPage, randomX, randomY);
                           }
                         } catch (e) {
                           // ignore mouse movement errors
@@ -258,19 +284,29 @@ function normalizeUrl(url) {
                 if (parentResult) {
                   const mainLink = await parentResult.$('h2 a');
                   if (mainLink) {
-                    // Scroll to the link
+                    // Scroll to the link with human-like movement
                     await mainLink.scrollIntoViewIfNeeded();
-                    await page.waitForTimeout(randomInt(500, 1500));
+                    await humanPause(page, 'scrolling');
                     
-                    // Hover over the link
+                    // Get link position for human-like mouse movement
+                    const linkBox = await mainLink.boundingBox();
+                    if (linkBox) {
+                      const targetX = linkBox.x + linkBox.width / 2;
+                      const targetY = linkBox.y + linkBox.height / 2;
+                      
+                      // Move mouse to link with natural curved path
+                      await humanMouseMove(page, targetX, targetY);
+                    }
+                    
+                    // Hover over the link with natural timing
                     await mainLink.hover();
-                    await page.waitForTimeout(randomInt(800, 2000));
+                    await humanPause(page, 'hovering');
                     
                     // Listen for new page/tab before clicking
                     const pagePromise = context.waitForEvent('page');
                     
-                    // Click with human-like delay
-                    await mainLink.click({ delay: randomInt(100, 300) });
+                    // Click with human-like behavior
+                    await humanClick(page, mainLink, 'normal');
                     
                     // Wait for new page to open
                     const newPage = await pagePromise;
@@ -308,16 +344,16 @@ function normalizeUrl(url) {
                           break;
                         }
 
-                        // Random smooth scrolling (2-5 scrolls)
+                        // Random smooth scrolling with enhanced human-like behavior
                         const scrolls = randomInt(2, 5);
                         for (let i = 0; i < scrolls; i++) {
                           if (targetPage.isClosed()) break;
                           await smoothScroll(targetPage, randomInt(1, 3));
-                          await targetPage.waitForTimeout(randomInt(1000, 3000));
+                          await humanPause(targetPage, 'scrolling');
                           scrollCount++;
                         }
 
-                        // Random hover over various elements on the target page
+                        // Random hover over various elements with natural mouse movement
                         if (!targetPage.isClosed()) {
                           const elements = await targetPage.$$("a, button, img, h1, h2, h3, p");
                           if (elements.length > 0) {
@@ -327,9 +363,20 @@ function normalizeUrl(url) {
                               const el = elements[randomInt(0, elements.length - 1)];
                               try {
                                 await el.scrollIntoViewIfNeeded();
-                                await targetPage.waitForTimeout(randomInt(300, 800));
+                                await humanPause(targetPage, 'scrolling');
+                                
+                                // Get element position for human-like mouse movement
+                                const elBox = await el.boundingBox();
+                                if (elBox) {
+                                  const targetX = elBox.x + elBox.width / 2;
+                                  const targetY = elBox.y + elBox.height / 2;
+                                  
+                                  // Move mouse with natural curved path
+                                  await humanMouseMove(targetPage, targetX, targetY);
+                                }
+                                
                                 await el.hover();
-                                await targetPage.waitForTimeout(randomInt(500, 2000));
+                                await humanPause(targetPage, 'hovering');
                                 hoverCount++;
                               } catch (e) {
                                 // ignore hover failures
@@ -338,19 +385,20 @@ function normalizeUrl(url) {
                           }
                         }
 
-                        // Random mouse movements and pauses
+                        // Enhanced random mouse movements with natural curves
                         if (!targetPage.isClosed()) {
-                          await targetPage.waitForTimeout(randomInt(2000, 6000));
+                          await humanPause(targetPage, 'reading');
                           
-                          // Occasionally move mouse to random position
+                          // Occasionally move mouse to random position with natural movement
                           if (randomInt(1, 10) <= 3) {
                             try {
                               const viewport = targetPage.viewportSize();
                               if (viewport) {
-                                await targetPage.mouse.move(
-                                  randomInt(100, viewport.width - 100),
-                                  randomInt(100, viewport.height - 100)
-                                );
+                                const randomX = randomInt(100, viewport.width - 100);
+                                const randomY = randomInt(100, viewport.height - 100);
+                                
+                                // Move mouse with natural curved path
+                                await humanMouseMove(targetPage, randomX, randomY);
                               }
                             } catch (e) {
                               // ignore mouse movement errors
@@ -386,8 +434,24 @@ function normalizeUrl(url) {
         );
         const nextButton = await page.$("a.sb_pagN");
         if (nextButton) {
-          await nextButton.click();
-          await page.waitForTimeout(randomInt(3000, 6000));
+          // Human-like pause before clicking next page
+          await humanPause(page, 'thinking');
+          
+          // Get button position for natural mouse movement
+          const buttonBox = await nextButton.boundingBox();
+          if (buttonBox) {
+            const targetX = buttonBox.x + buttonBox.width / 2;
+            const targetY = buttonBox.y + buttonBox.height / 2;
+            
+            // Move mouse with natural curved path
+            await humanMouseMove(page, targetX, targetY);
+          }
+          
+          // Click with human-like behavior
+          await humanClick(page, nextButton, 'normal');
+          
+          // Wait for page to load with natural reading time
+          await humanPause(page, 'reading');
           currentPage++;
         } else {
           console.log("⚠️ No more pages available.");
@@ -422,9 +486,28 @@ function normalizeUrl(url) {
       }
     }
 
-    // 🕒 Wait 30–90 sec before starting next keyword
-    const pause = randomInt(30000, 50000);
-    console.log(`⏳ Waiting ${pause / 1000}s before next keyword...`);
-    await delay(pause);
+    // 🕒 Human-like pause between sessions (30-90 seconds)
+    const pause = randomInt(30000, 90000);
+    console.log(`⏳ Taking a natural break for ${pause / 1000}s before next keyword...`);
+    
+    // Simulate human-like behavior during the break
+    if (Math.random() < 0.4) {
+      console.log(`🤔 Taking a longer break to "think" about the next search...`);
+      await delay(pause);
+    } else {
+      // Split the pause into smaller chunks with occasional activity
+      const chunkSize = randomInt(10000, 20000);
+      let remaining = pause;
+      
+      while (remaining > 0) {
+        const currentChunk = Math.min(chunkSize, remaining);
+        await delay(currentChunk);
+        remaining -= currentChunk;
+        
+        if (remaining > 0 && Math.random() < 0.2) {
+          console.log(`💭 Brief pause... continuing in ${remaining / 1000}s`);
+        }
+      }
+    }
   }
 })();
