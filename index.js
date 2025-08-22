@@ -6,6 +6,10 @@ const { logSession } = require("./logger");
 // Load config
 const config = JSON.parse(fs.readFileSync("config.json", "utf8"));
 
+// Load external files
+const proxies = JSON.parse(fs.readFileSync("proxies.json", "utf8"));
+const userAgents = JSON.parse(fs.readFileSync("user_agents.json", "utf8"));
+
 // Delay helper
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -25,10 +29,10 @@ function normalizeUrl(url) {
   for (const configItem of config) {
     const keyword = configItem.keywords;
     const userAgent =
-      configItem.user_agents[randomInt(0, configItem.user_agents.length - 1)];
+      userAgents[randomInt(0, userAgents.length - 1)];
     const proxy =
-      configItem.proxies.length > 0
-        ? configItem.proxies[randomInt(0, configItem.proxies.length - 1)]
+      proxies.length > 0
+        ? proxies[randomInt(0, proxies.length - 1)]
         : null;
 
     console.log(

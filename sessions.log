@@ -1,3 +1,10 @@
 [2025-08-20T12:15:11.538Z] {"keyword":"weight loss tips","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/110.0.1587.57","proxy":"http://user:pass@proxy2.example.com:8080","targetFound":false}
 [2025-08-21T08:30:09.859Z] {"keyword":"weight loss tips","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/110.0.1587.57","proxy":"http://user:pass@proxy2.example.com:8080","targetFound":true}
 [2025-08-21T08:34:36.630Z] {"keyword":"exercise for fat loss","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Edge/113.0.1774.35","proxy":"http://user:pass@proxy2.example.com:8080","targetFound":true}
+[2025-08-21T12:28:59.299Z] {"keyword":"weight loss tips","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/110.0.1587.57","proxy":"http://user:pass@proxy1.example.com:8080","targetFound":true}
+[2025-08-21T12:34:25.568Z] {"keyword":"exercise for fat loss","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/110.0.1587.57","proxy":"http://user:pass@proxy1.example.com:8080","targetFound":true}
+[2025-08-21T12:39:10.799Z] {"keyword":"healthy diet plans","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/110.0.1587.57","proxy":"http://user:pass@proxy2.example.com:8080","targetFound":true}
+[2025-08-21T13:44:30.738Z] {"keyword":"weight loss tips","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Edge/113.0.1774.35","proxy":"http://user:pass@proxy2.example.com:8080","targetFound":true}
+[2025-08-22T05:42:01.314Z] {"keyword":"weight loss tips","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Edge/113.0.1774.35","proxy":"http://user:pass@proxy2.example.com:8080","targetFound":true}
+[2025-08-22T05:48:02.437Z] {"keyword":"exercise for fat loss","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Edge/113.0.1774.35","proxy":"http://user:pass@proxy2.example.com:8080","targetFound":true}
+[2025-08-22T05:53:25.402Z] {"keyword":"healthy diet plans","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/110.0.1587.57","proxy":"http://user:pass@proxy2.example.com:8080","targetFound":true}
