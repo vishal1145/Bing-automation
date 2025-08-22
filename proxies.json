@@ -1,4 +1,42 @@
 [
-  "http://user:pass@proxy1.example.com:8080",
-  "http://user:pass@proxy2.example.com:8080"
+  {
+    "server": "http://23.95.150.145:6114",
+    "username": "gwhzcnux",
+    "password": "w2244raboqj2"
+  },
+  {
+    "server": "http://198.23.239.134:6540",
+    "username": "gwhzcnux",
+    "password": "w2244raboqj2"
+  },
+  {
+    "server": "http://45.38.107.97:6014",
+    "username": "gwhzcnux",
+    "password": "w2244raboqj2"
+  },
+  {
+    "server": "http://107.172.163.27:6543",
+    "username": "gwhzcnux",
+    "password": "w2244raboqj2"
+  },
+  {
+    "server": "http://64.137.96.74:6641",
+    "username": "gwhzcnux",
+    "password": "w2244raboqj2"
+  },
+  {
+    "server": "http://45.43.186.39:6257",
+    "username": "gwhzcnux",
+    "password": "w2244raboqj2"
+  },
+  {
+    "server": "http://154.203.43.247:5536",
+    "username": "gwhzcnux",
+    "password": "w2244raboqj2"
+  },
+  {
+    "server": "http://216.10.27.159:6837",
+    "username": "gwhzcnux",
+    "password": "w2244raboqj2"
+  }
 ]

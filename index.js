@@ -34,15 +34,23 @@ function normalizeUrl(url) {
       proxies.length > 0
         ? proxies[randomInt(0, proxies.length - 1)]
         : null;
-
+       
+    // console.log(
+    //   `Launching with UA: ${userAgent}, Proxy: ${proxy || "none"}, Keyword: ${keyword}`
+    // );
     console.log(
-      `Launching with UA: ${userAgent}, Proxy: ${proxy || "none"}, Keyword: ${keyword}`
+      `Launching with UA: ${userAgent}, Proxy: ${proxy ? `${proxy.server} (${proxy.username})` : "none"}, Keyword: ${keyword}`
     );
 
     // Launch browser
     const browser = await chromium.launch({
       headless: false,
       // proxy: proxy ? { server: proxy } : undefined
+      proxy: proxy ? {
+        server: proxy.server,
+        username: proxy.username,
+        password: proxy.password
+      } : undefined
     });
 
     const context = await browser.newContext({ userAgent });
