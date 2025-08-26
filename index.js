@@ -495,11 +495,21 @@ async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
   }
 }
 
-// Main execution - run campaigns sequentially with 5 tabs each
-(async () => {
-  console.log(`🚀 Starting campaigns sequentially with 5 tabs each...`);
+function getRandomInt(min, max) {
+  min = Math.ceil(min);   // round up min
+  max = Math.floor(max);  // round down max
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+const mainLogic = async () => {
+  console.log(`🚀 Starting campaigns continuously with 10 second breaks...`);
   
-  for (let configIndex = 0; configIndex < config.length; configIndex++) {
+  while (true) {
+    var length = config.length;
+    var configIndex = getRandomInt(0, length - 1);
+
+    console.log(configIndex);
+
     const configItem = config[configIndex];
     const keyword = configItem.keywords;
     
@@ -508,7 +518,7 @@ async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
     // Run 5 tabs simultaneously for current keyword
     const tabPromises = [];
     
-         for (let tabIndex = 0; tabIndex < 5; tabIndex++) {
+    for (let tabIndex = 0; tabIndex < 1; tabIndex++) {
        // Use no proxy for now (set to null)
        const proxy = null;
        
@@ -546,15 +556,23 @@ async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
       console.log(`\n📈 Campaign ${configIndex + 1} Summary: ${successCount}/5 tabs successful, ${targetFoundCount} targets found`);
       
       // Wait a bit before moving to next keyword
-      if (configIndex < config.length - 1) {
-        console.log(`\n⏸️ Waiting 10 seconds before starting next keyword...`);
-        await delay(10000);
-      }
+      // if (configIndex < config.length - 1) {
+      //   console.log(`\n⏸️ Waiting 10 seconds before starting next keyword...`);
+      //   await delay(10000);
+      // }
       
     } catch (error) {
       console.log(`❌ Error running tabs for "${keyword}": ${error.message}`);
     }
+    
+    // Wait 10 seconds before starting next campaign
+    console.log(`\n⏸️ Waiting 10 seconds before starting next campaign...`);
+    await delay(10000);
   }
-  
-  console.log(`\n🎉 All campaigns completed!`);
+}
+
+  // console.log(`\n🎉 All campaigns completed!`);
+// Main execution - run campaigns sequentially with 5 tabs each
+(async () => {
+  await mainLogic();
 })();
