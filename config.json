@@ -18,4 +18,18 @@
   "proxies_file": "proxies.json",
   "user_agents_file": "user_agents.json",
   "stay_duration": { "min": 165, "max": 200 }
+},
+{
+  "keywords": "fitness motivation",
+  "target_url": "https://www.menshealth.com/",
+  "proxies_file": "proxies.json",
+  "user_agents_file": "user_agents.json",
+  "stay_duration": { "min": 165, "max": 200 }
+},
+{
+  "keywords": "nutrition facts",
+  "target_url": "https://www.nutrition.gov/",
+  "proxies_file": "proxies.json",
+  "user_agents_file": "user_agents.json",
+  "stay_duration": { "min": 165, "max": 200 }
 }]

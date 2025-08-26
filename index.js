@@ -1,6 +1,15 @@
 const { chromium } = require("playwright");
 const fs = require("fs");
-const { randomInt, humanType, smoothScroll, humanMouseMove, humanPause, humanClick } = require("./utils");
+const { 
+  randomInt, 
+  humanType, 
+  smoothScroll, 
+  humanMouseMove, 
+  humanPause, 
+  humanClick,
+  // simulateHumanTabBehavior,
+  naturalMouseMovement
+} = require("./utils");
 const { logSession } = require("./logger");
 
 // Load config
@@ -25,37 +34,32 @@ function normalizeUrl(url) {
   }
 }
 
-(async () => {
-  for (const configItem of config) {
-    const keyword = configItem.keywords;
-    const userAgent =
-      userAgents[randomInt(0, userAgents.length - 1)];
-    const proxy =
-      proxies.length > 0
-        ? proxies[randomInt(0, proxies.length - 1)]
-        : null;
-       
-    // console.log(
-    //   `Launching with UA: ${userAgent}, Proxy: ${proxy || "none"}, Keyword: ${keyword}`
-    // );
-    console.log(
-      `Launching with UA: ${userAgent}, Proxy: ${proxy ? `${proxy.server} (${proxy.username})` : "none"}, Keyword: ${keyword}`
-    );
+// Function to run a single campaign
+async function runCampaign(configItem, campaignIndex) {
+  const keyword = configItem.keywords;
+  const userAgent = userAgents[randomInt(0, userAgents.length - 1)];
+  
+  // Use proxy if available (different IP for each campaign)
+  // const proxy = proxies.length > 0 ? proxies[campaignIndex % proxies.length] : null;
+const proxy = null;
+  console.log(
+    `🚀 Campaign ${campaignIndex + 1}: Launching with UA: ${userAgent}, Proxy: ${proxy ? `${proxy.server} (${proxy.username})` : "none"}, Keyword: ${keyword}`
+  );
 
-    // Launch browser
-    const browser = await chromium.launch({
-      headless: false,
-      // proxy: proxy ? { server: proxy } : undefined
-      proxy: proxy ? {
-        server: proxy.server,
-        username: proxy.username,
-        password: proxy.password
-      } : undefined
-    });
+  // Launch browser with proxy
+  const browser = await chromium.launch({
+    headless: false,
+    proxy: proxy ? {
+      server: proxy.server,
+      username: proxy.username,
+      password: proxy.password
+    } : undefined
+  });
 
-    const context = await browser.newContext({ userAgent });
-    const page = await context.newPage();
+  const context = await browser.newContext({ userAgent });
+  const page = await context.newPage();
 
+  try {
     // 1. Go to Bing
     await page.goto("https://www.bing.com", { waitUntil: "domcontentloaded" });
     
@@ -73,7 +77,10 @@ function normalizeUrl(url) {
     await page.waitForSelector("li.b_algo h2 a", { timeout: 10000 });
     await humanPause(page, 'reading');
 
-    // 4. Search for target site
+    // 4. Simulate human-like tab behavior (opening multiple tabs)
+    // await simulateHumanTabBehavior(page, context, configItem.target_url);
+
+    // 5. Search for target site
     let targetFound = false;
     let maxPages = 5; // Changed to 5 pages as requested
     let currentPage = 1;
@@ -119,7 +126,7 @@ function normalizeUrl(url) {
       }
 
       if (foundLink) {
-        console.log(`✅ Found target site on page ${currentPage}: ${foundLink} (${foundLinkType})`);
+        console.log(`✅ Campaign ${campaignIndex + 1}: Found target site on page ${currentPage}: ${foundLink} (${foundLinkType})`);
 
         // Find and click the target link
         if (foundLinkType === 'main') {
@@ -166,7 +173,7 @@ function normalizeUrl(url) {
                 
                 // Wait for new page to open
                 const newPage = await pagePromise;
-                console.log(`🔄 New page opened: ${newPage.url()}`);
+                console.log(`🔄 Campaign ${campaignIndex + 1}: New page opened: ${newPage.url()}`);
                 
                 // Wait for the new page to load
                 await newPage.waitForLoadState('domcontentloaded');
@@ -180,13 +187,13 @@ function normalizeUrl(url) {
                 await targetPage.waitForTimeout(randomInt(1000, 2000));
                 
                 targetFound = true;
-                console.log(`🎯 Successfully clicked and opened target site: ${targetPage.url()}`);
-                console.log(`🎯 Page title: ${await targetPage.title()}`);
+                console.log(`🎯 Campaign ${campaignIndex + 1}: Successfully clicked and opened target site: ${targetPage.url()}`);
+                console.log(`🎯 Campaign ${campaignIndex + 1}: Page title: ${await targetPage.title()}`);
                 
-                // 5. Enhanced random scrolling + interaction on the target page
+                // 6. Enhanced random scrolling + interaction on the target page
                 const stay =
                   randomInt(configItem.stay_duration.min, configItem.stay_duration.max) * 1000;
-                console.log(`🔄 Staying on target page for ${stay / 1000} seconds with human-like behavior...`);
+                console.log(`🔄 Campaign ${campaignIndex + 1}: Staying on target page for ${stay / 1000} seconds with human-like behavior...`);
 
                 const start = Date.now();
                 let scrollCount = 0;
@@ -196,7 +203,7 @@ function normalizeUrl(url) {
                   while (Date.now() - start < stay) {
                     // Check if page is still open
                     if (targetPage.isClosed()) {
-                      console.log(`⚠️ Target page was closed unexpectedly`);
+                      console.log(`⚠️ Campaign ${campaignIndex + 1}: Target page was closed unexpectedly`);
                       break;
                     }
 
@@ -245,38 +252,25 @@ function normalizeUrl(url) {
                     if (!targetPage.isClosed()) {
                       await humanPause(targetPage, 'reading');
                       
-                      // Occasionally move mouse to random position with natural movement
-                      if (randomInt(1, 10) <= 3) {
-                        try {
-                          const viewport = targetPage.viewportSize();
-                          if (viewport) {
-                            const randomX = randomInt(100, viewport.width - 100);
-                            const randomY = randomInt(100, viewport.height - 100);
-                            
-                            // Move mouse with natural curved path
-                            await humanMouseMove(targetPage, randomX, randomY);
-                          }
-                        } catch (e) {
-                          // ignore mouse movement errors
-                        }
-                      }
+                      // Use the new natural mouse movement function
+                      await naturalMouseMovement(targetPage);
                     }
                   }
                 } catch (error) {
-                  console.log(`⚠️ Error during target page interaction: ${error.message}`);
+                  console.log(`⚠️ Campaign ${campaignIndex + 1}: Error during target page interaction: ${error.message}`);
                 }
                 
-                console.log(`📊 Session stats: ${scrollCount} scrolls, ${hoverCount} hovers`);
+                console.log(`📊 Campaign ${campaignIndex + 1}: Session stats: ${scrollCount} scrolls, ${hoverCount} hovers`);
                 
                 // Close the target page only if it's still open
                 if (!targetPage.isClosed()) {
                   await targetPage.close();
-                  console.log(`🔒 Target page closed`);
+                  console.log(`🔒 Campaign ${campaignIndex + 1}: Target page closed`);
                 }
                 
                 break;
               } catch (error) {
-                console.log(`⚠️ Error clicking link: ${error.message}`);
+                console.log(`⚠️ Campaign ${campaignIndex + 1}: Error clicking link: ${error.message}`);
                 continue;
               }
             }
@@ -322,7 +316,7 @@ function normalizeUrl(url) {
                     
                     // Wait for new page to open
                     const newPage = await pagePromise;
-                    console.log(`🔄 New page opened: ${newPage.url()}`);
+                    console.log(`🔄 Campaign ${campaignIndex + 1}: New page opened: ${newPage.url()}`);
                     
                     // Wait for the new page to load
                     await newPage.waitForLoadState('domcontentloaded');
@@ -336,13 +330,13 @@ function normalizeUrl(url) {
                     await targetPage.waitForTimeout(randomInt(1000, 2000));
                     
                     targetFound = true;
-                    console.log(`🎯 Successfully clicked and opened target site: ${targetPage.url()}`);
-                    console.log(`🎯 Page title: ${await targetPage.title()}`);
+                    console.log(`🎯 Campaign ${campaignIndex + 1}: Successfully clicked and opened target site: ${targetPage.url()}`);
+                    console.log(`🎯 Campaign ${campaignIndex + 1}: Page title: ${await targetPage.title()}`);
                     
-                    // 5. Enhanced random scrolling + interaction on the target page
+                    // 6. Enhanced random scrolling + interaction on the target page
                     const stay =
                       randomInt(configItem.stay_duration.min, configItem.stay_duration.max) * 1000;
-                    console.log(`🔄 Staying on target page for ${stay / 1000} seconds with human-like behavior...`);
+                    console.log(`🔄 Campaign ${campaignIndex + 1}: Staying on target page for ${stay / 1000} seconds with human-like behavior...`);
 
                     const start = Date.now();
                     let scrollCount = 0;
@@ -352,7 +346,7 @@ function normalizeUrl(url) {
                       while (Date.now() - start < stay) {
                         // Check if page is still open
                         if (targetPage.isClosed()) {
-                          console.log(`⚠️ Target page was closed unexpectedly`);
+                          console.log(`⚠️ Campaign ${campaignIndex + 1}: Target page was closed unexpectedly`);
                           break;
                         }
 
@@ -401,40 +395,27 @@ function normalizeUrl(url) {
                         if (!targetPage.isClosed()) {
                           await humanPause(targetPage, 'reading');
                           
-                          // Occasionally move mouse to random position with natural movement
-                          if (randomInt(1, 10) <= 3) {
-                            try {
-                              const viewport = targetPage.viewportSize();
-                              if (viewport) {
-                                const randomX = randomInt(100, viewport.width - 100);
-                                const randomY = randomInt(100, viewport.height - 100);
-                                
-                                // Move mouse with natural curved path
-                                await humanMouseMove(targetPage, randomX, randomY);
-                              }
-                            } catch (e) {
-                              // ignore mouse movement errors
-                            }
-                          }
+                          // Use the new natural mouse movement function
+                          await naturalMouseMovement(targetPage);
                         }
                       }
                     } catch (error) {
-                      console.log(`⚠️ Error during target page interaction: ${error.message}`);
+                      console.log(`⚠️ Campaign ${campaignIndex + 1}: Error during target page interaction: ${error.message}`);
                     }
                     
-                    console.log(`📊 Session stats: ${scrollCount} scrolls, ${hoverCount} hovers`);
+                    console.log(`📊 Campaign ${campaignIndex + 1}: Session stats: ${scrollCount} scrolls, ${hoverCount} hovers`);
                     
                     // Close the target page only if it's still open
                     if (!targetPage.isClosed()) {
                       await targetPage.close();
-                      console.log(`🔒 Target page closed`);
+                      console.log(`🔒 Campaign ${campaignIndex + 1}: Target page closed`);
                     }
                     
                     break;
                   }
                 }
               } catch (error) {
-                console.log(`⚠️ Error clicking citation link: ${error.message}`);
+                console.log(`⚠️ Campaign ${campaignIndex + 1}: Error clicking citation link: ${error.message}`);
                 continue;
               }
             }
@@ -442,7 +423,7 @@ function normalizeUrl(url) {
         }
       } else {
         console.log(
-          `❌ Not found on page ${currentPage}, checking next page...`
+          `❌ Campaign ${campaignIndex + 1}: Not found on page ${currentPage}, checking next page...`
         );
         const nextButton = await page.$("a.sb_pagN");
         if (nextButton) {
@@ -466,60 +447,86 @@ function normalizeUrl(url) {
           await humanPause(page, 'reading');
           currentPage++;
         } else {
-          console.log("⚠️ No more pages available.");
+          console.log(`⚠️ Campaign ${campaignIndex + 1}: No more pages available.`);
           break;
         }
       }
     }
 
-    // 5. Enhanced random scrolling + interaction (only if target clicked)
+    // 7. Enhanced random scrolling + interaction (only if target clicked)
     if (targetFound) {
       // This section is now handled above when the target page opens
-      console.log(`✅ Target site interaction completed`);
+      console.log(`✅ Campaign ${campaignIndex + 1}: Target site interaction completed`);
     } else {
-      console.log(`❌ Target site not found, no interaction performed`);
+      console.log(`❌ Campaign ${campaignIndex + 1}: Target site not found, no interaction performed`);
     }
 
-    // 6. Log session
+    // 8. Log session
     logSession({ keyword, userAgent, proxy, targetFound });
 
-    // 7. Close browser properly
+    // 9. Close browser properly
     try {
       await context.close();
       await browser.close();
-      console.log(`🔒 Browser closed successfully`);
+      console.log(`🔒 Campaign ${campaignIndex + 1}: Browser closed successfully`);
     } catch (error) {
-      console.log(`⚠️ Error closing browser: ${error.message}`);
+      console.log(`⚠️ Campaign ${campaignIndex + 1}: Error closing browser: ${error.message}`);
       // Force close if normal close fails
       try {
         await browser.close();
       } catch (e) {
-        console.log(`⚠️ Force close also failed: ${e.message}`);
+        console.log(`⚠️ Campaign ${campaignIndex + 1}: Force close also failed: ${e.message}`);
       }
     }
 
-    // 🕒 Human-like pause between sessions (30-90 seconds)
-    const pause = randomInt(30000, 90000);
-    console.log(`⏳ Taking a natural break for ${pause / 1000}s before next keyword...`);
+    return { success: true, keyword, targetFound };
+
+  } catch (error) {
+    console.log(`❌ Campaign ${campaignIndex + 1}: Fatal error: ${error.message}`);
     
-    // Simulate human-like behavior during the break
-    if (Math.random() < 0.4) {
-      console.log(`🤔 Taking a longer break to "think" about the next search...`);
-      await delay(pause);
-    } else {
-      // Split the pause into smaller chunks with occasional activity
-      const chunkSize = randomInt(10000, 20000);
-      let remaining = pause;
-      
-      while (remaining > 0) {
-        const currentChunk = Math.min(chunkSize, remaining);
-        await delay(currentChunk);
-        remaining -= currentChunk;
-        
-        if (remaining > 0 && Math.random() < 0.2) {
-          console.log(`💭 Brief pause... continuing in ${remaining / 1000}s`);
-        }
-      }
+    // Try to close browser on error
+    try {
+      if (context) await context.close();
+      if (browser) await browser.close();
+    } catch (e) {
+      console.log(`⚠️ Campaign ${campaignIndex + 1}: Error closing browser after fatal error: ${e.message}`);
     }
+    
+    return { success: false, keyword, error: error.message };
+  }
+}
+
+// Main execution - run multiple campaigns simultaneously
+(async () => {
+  console.log(`🚀 Starting ${config.length} campaigns simultaneously...`);
+  
+  // Run all campaigns in parallel
+  const campaignPromises = config.map((configItem, index) => 
+    runCampaign(configItem, index)
+  );
+  
+  try {
+    // Wait for all campaigns to complete
+    const results = await Promise.allSettled(campaignPromises);
+    
+    // Log results
+    console.log(`\n📊 Campaign Results Summary:`);
+    results.forEach((result, index) => {
+      if (result.status === 'fulfilled') {
+        const { success, keyword, targetFound, error } = result.value;
+        if (success) {
+          console.log(`✅ Campaign ${index + 1} (${keyword}): ${targetFound ? 'Target found' : 'Target not found'}`);
+        } else {
+          console.log(`❌ Campaign ${index + 1} (${keyword}): Failed - ${error}`);
+        }
+      } else {
+        console.log(`❌ Campaign ${index + 1}: Rejected - ${result.reason}`);
+      }
+    });
+    
+    console.log(`\n🎉 All campaigns completed!`);
+    
+  } catch (error) {
+    console.log(`❌ Error running campaigns: ${error.message}`);
   }
 })();
