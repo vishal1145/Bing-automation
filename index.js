@@ -35,15 +35,14 @@ function normalizeUrl(url) {
 }
 
 // Function to run a single campaign
-async function runCampaign(configItem, campaignIndex) {
+async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
   const keyword = configItem.keywords;
   const userAgent = userAgents[randomInt(0, userAgents.length - 1)];
   
   // Use proxy if available (different IP for each campaign)
   // const proxy = proxies.length > 0 ? proxies[campaignIndex % proxies.length] : null;
-const proxy = null;
   console.log(
-    `🚀 Campaign ${campaignIndex + 1}: Launching with UA: ${userAgent}, Proxy: ${proxy ? `${proxy.server} (${proxy.username})` : "none"}, Keyword: ${keyword}`
+    `🚀 Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Launching with UA: ${userAgent}, Proxy: ${proxy ? `${proxy.server} (${proxy.username})` : "none"}, Keyword: ${keyword}`
   );
 
   // Launch browser with proxy
@@ -74,7 +73,7 @@ const proxy = null;
     await page.keyboard.press("Enter");
 
     // 3. Wait for results with natural reading time
-    await page.waitForSelector("li.b_algo h2 a", { timeout: 10000 });
+    await page.waitForSelector("li.b_algo h2 a", { timeout: 20000 });
     await humanPause(page, 'reading');
 
     // 4. Simulate human-like tab behavior (opening multiple tabs)
@@ -126,7 +125,7 @@ const proxy = null;
       }
 
       if (foundLink) {
-        console.log(`✅ Campaign ${campaignIndex + 1}: Found target site on page ${currentPage}: ${foundLink} (${foundLinkType})`);
+        console.log(`✅ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Found target site on page ${currentPage}: ${foundLink} (${foundLinkType})`);
 
         // Find and click the target link
         if (foundLinkType === 'main') {
@@ -173,7 +172,7 @@ const proxy = null;
                 
                 // Wait for new page to open
                 const newPage = await pagePromise;
-                console.log(`🔄 Campaign ${campaignIndex + 1}: New page opened: ${newPage.url()}`);
+                console.log(`🔄 Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: New page opened: ${newPage.url()}`);
                 
                 // Wait for the new page to load
                 await newPage.waitForLoadState('domcontentloaded');
@@ -187,13 +186,13 @@ const proxy = null;
                 await targetPage.waitForTimeout(randomInt(1000, 2000));
                 
                 targetFound = true;
-                console.log(`🎯 Campaign ${campaignIndex + 1}: Successfully clicked and opened target site: ${targetPage.url()}`);
-                console.log(`🎯 Campaign ${campaignIndex + 1}: Page title: ${await targetPage.title()}`);
+                console.log(`🎯 Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Successfully clicked and opened target site: ${targetPage.url()}`);
+                console.log(`🎯 Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Page title: ${await targetPage.title()}`);
                 
                 // 6. Enhanced random scrolling + interaction on the target page
                 const stay =
                   randomInt(configItem.stay_duration.min, configItem.stay_duration.max) * 1000;
-                console.log(`🔄 Campaign ${campaignIndex + 1}: Staying on target page for ${stay / 1000} seconds with human-like behavior...`);
+                console.log(`🔄 Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Staying on target page for ${stay / 1000} seconds with human-like behavior...`);
 
                 const start = Date.now();
                 let scrollCount = 0;
@@ -203,7 +202,7 @@ const proxy = null;
                   while (Date.now() - start < stay) {
                     // Check if page is still open
                     if (targetPage.isClosed()) {
-                      console.log(`⚠️ Campaign ${campaignIndex + 1}: Target page was closed unexpectedly`);
+                      console.log(`⚠️ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Target page was closed unexpectedly`);
                       break;
                     }
 
@@ -257,20 +256,20 @@ const proxy = null;
                     }
                   }
                 } catch (error) {
-                  console.log(`⚠️ Campaign ${campaignIndex + 1}: Error during target page interaction: ${error.message}`);
+                  console.log(`⚠️ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Error during target page interaction: ${error.message}`);
                 }
                 
-                console.log(`📊 Campaign ${campaignIndex + 1}: Session stats: ${scrollCount} scrolls, ${hoverCount} hovers`);
+                console.log(`📊 Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Session stats: ${scrollCount} scrolls, ${hoverCount} hovers`);
                 
                 // Close the target page only if it's still open
                 if (!targetPage.isClosed()) {
                   await targetPage.close();
-                  console.log(`🔒 Campaign ${campaignIndex + 1}: Target page closed`);
+                  console.log(`🔒 Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Target page closed`);
                 }
                 
                 break;
               } catch (error) {
-                console.log(`⚠️ Campaign ${campaignIndex + 1}: Error clicking link: ${error.message}`);
+                console.log(`⚠️ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Error clicking link: ${error.message}`);
                 continue;
               }
             }
@@ -316,7 +315,7 @@ const proxy = null;
                     
                     // Wait for new page to open
                     const newPage = await pagePromise;
-                    console.log(`🔄 Campaign ${campaignIndex + 1}: New page opened: ${newPage.url()}`);
+                    console.log(`🔄 Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: New page opened: ${newPage.url()}`);
                     
                     // Wait for the new page to load
                     await newPage.waitForLoadState('domcontentloaded');
@@ -330,13 +329,13 @@ const proxy = null;
                     await targetPage.waitForTimeout(randomInt(1000, 2000));
                     
                     targetFound = true;
-                    console.log(`🎯 Campaign ${campaignIndex + 1}: Successfully clicked and opened target site: ${targetPage.url()}`);
-                    console.log(`🎯 Campaign ${campaignIndex + 1}: Page title: ${await targetPage.title()}`);
+                    console.log(`🎯 Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Successfully clicked and opened target site: ${targetPage.url()}`);
+                    console.log(`🎯 Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Page title: ${await targetPage.title()}`);
                     
                     // 6. Enhanced random scrolling + interaction on the target page
                     const stay =
                       randomInt(configItem.stay_duration.min, configItem.stay_duration.max) * 1000;
-                    console.log(`🔄 Campaign ${campaignIndex + 1}: Staying on target page for ${stay / 1000} seconds with human-like behavior...`);
+                    console.log(`🔄 Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Staying on target page for ${stay / 1000} seconds with human-like behavior...`);
 
                     const start = Date.now();
                     let scrollCount = 0;
@@ -346,7 +345,7 @@ const proxy = null;
                       while (Date.now() - start < stay) {
                         // Check if page is still open
                         if (targetPage.isClosed()) {
-                          console.log(`⚠️ Campaign ${campaignIndex + 1}: Target page was closed unexpectedly`);
+                          console.log(`⚠️ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Target page was closed unexpectedly`);
                           break;
                         }
 
@@ -400,22 +399,22 @@ const proxy = null;
                         }
                       }
                     } catch (error) {
-                      console.log(`⚠️ Campaign ${campaignIndex + 1}: Error during target page interaction: ${error.message}`);
+                      console.log(`⚠️ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Error during target page interaction: ${error.message}`);
                     }
                     
-                    console.log(`📊 Campaign ${campaignIndex + 1}: Session stats: ${scrollCount} scrolls, ${hoverCount} hovers`);
+                    console.log(`📊 Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Session stats: ${scrollCount} scrolls, ${hoverCount} hovers`);
                     
                     // Close the target page only if it's still open
                     if (!targetPage.isClosed()) {
                       await targetPage.close();
-                      console.log(`🔒 Campaign ${campaignIndex + 1}: Target page closed`);
+                      console.log(`🔒 Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Target page closed`);
                     }
                     
                     break;
                   }
                 }
               } catch (error) {
-                console.log(`⚠️ Campaign ${campaignIndex + 1}: Error clicking citation link: ${error.message}`);
+                console.log(`⚠️ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Error clicking citation link: ${error.message}`);
                 continue;
               }
             }
@@ -423,7 +422,7 @@ const proxy = null;
         }
       } else {
         console.log(
-          `❌ Campaign ${campaignIndex + 1}: Not found on page ${currentPage}, checking next page...`
+          `❌ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Not found on page ${currentPage}, checking next page...`
         );
         const nextButton = await page.$("a.sb_pagN");
         if (nextButton) {
@@ -447,7 +446,7 @@ const proxy = null;
           await humanPause(page, 'reading');
           currentPage++;
         } else {
-          console.log(`⚠️ Campaign ${campaignIndex + 1}: No more pages available.`);
+          console.log(`⚠️ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: No more pages available.`);
           break;
         }
       }
@@ -456,77 +455,106 @@ const proxy = null;
     // 7. Enhanced random scrolling + interaction (only if target clicked)
     if (targetFound) {
       // This section is now handled above when the target page opens
-      console.log(`✅ Campaign ${campaignIndex + 1}: Target site interaction completed`);
+      console.log(`✅ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Target site interaction completed`);
     } else {
-      console.log(`❌ Campaign ${campaignIndex + 1}: Target site not found, no interaction performed`);
+      console.log(`❌ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Target site not found, no interaction performed`);
     }
 
     // 8. Log session
-    logSession({ keyword, userAgent, proxy, targetFound });
+    logSession({ keyword, userAgent, proxy, targetFound, tabIndex });
 
     // 9. Close browser properly
     try {
       await context.close();
       await browser.close();
-      console.log(`🔒 Campaign ${campaignIndex + 1}: Browser closed successfully`);
+      console.log(`🔒 Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Browser closed successfully`);
     } catch (error) {
-      console.log(`⚠️ Campaign ${campaignIndex + 1}: Error closing browser: ${error.message}`);
+      console.log(`⚠️ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Error closing browser: ${error.message}`);
       // Force close if normal close fails
       try {
         await browser.close();
       } catch (e) {
-        console.log(`⚠️ Campaign ${campaignIndex + 1}: Force close also failed: ${e.message}`);
+        console.log(`⚠️ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Force close also failed: ${e.message}`);
       }
     }
 
-    return { success: true, keyword, targetFound };
+    return { success: true, keyword, targetFound, tabIndex };
 
   } catch (error) {
-    console.log(`❌ Campaign ${campaignIndex + 1}: Fatal error: ${error.message}`);
+    console.log(`❌ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Fatal error: ${error.message}`);
     
     // Try to close browser on error
     try {
       if (context) await context.close();
       if (browser) await browser.close();
     } catch (e) {
-      console.log(`⚠️ Campaign ${campaignIndex + 1}: Error closing browser after fatal error: ${e.message}`);
+      console.log(`⚠️ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Error closing browser after fatal error: ${e.message}`);
     }
     
-    return { success: false, keyword, error: error.message };
+    return { success: false, keyword, error: error.message, tabIndex };
   }
 }
 
-// Main execution - run multiple campaigns simultaneously
+// Main execution - run campaigns sequentially with 5 tabs each
 (async () => {
-  console.log(`🚀 Starting ${config.length} campaigns simultaneously...`);
+  console.log(`🚀 Starting campaigns sequentially with 5 tabs each...`);
   
-  // Run all campaigns in parallel
-  const campaignPromises = config.map((configItem, index) => 
-    runCampaign(configItem, index)
-  );
-  
-  try {
-    // Wait for all campaigns to complete
-    const results = await Promise.allSettled(campaignPromises);
+  for (let configIndex = 0; configIndex < config.length; configIndex++) {
+    const configItem = config[configIndex];
+    const keyword = configItem.keywords;
     
-    // Log results
-    console.log(`\n📊 Campaign Results Summary:`);
-    results.forEach((result, index) => {
-      if (result.status === 'fulfilled') {
-        const { success, keyword, targetFound, error } = result.value;
-        if (success) {
-          console.log(`✅ Campaign ${index + 1} (${keyword}): ${targetFound ? 'Target found' : 'Target not found'}`);
+    console.log(`\n🎯 Starting Campaign ${configIndex + 1}: "${keyword}" with 5 tabs using different IPs`);
+    
+    // Run 5 tabs simultaneously for current keyword
+    const tabPromises = [];
+    
+         for (let tabIndex = 0; tabIndex < 5; tabIndex++) {
+       // Use no proxy for now (set to null)
+       const proxy = null;
+       
+       console.log(`  📱 Tab ${tabIndex + 1}: Using proxy none`);
+       
+       const tabPromise = runCampaign(configItem, configIndex, tabIndex, proxy);
+       tabPromises.push(tabPromise);
+     }
+    
+    try {
+      // Wait for all 5 tabs of current keyword to complete
+      console.log(`⏳ Waiting for all 5 tabs of "${keyword}" to complete...`);
+      const results = await Promise.allSettled(tabPromises);
+      
+      // Log results for current keyword
+      console.log(`\n📊 Campaign ${configIndex + 1} ("${keyword}") Results:`);
+      let successCount = 0;
+      let targetFoundCount = 0;
+      
+      results.forEach((result, tabIndex) => {
+        if (result.status === 'fulfilled') {
+          const { success, keyword, targetFound, error } = result.value;
+          if (success) {
+            successCount++;
+            if (targetFound) targetFoundCount++;
+            console.log(`  ✅ Tab ${tabIndex + 1}: ${targetFound ? 'Target found' : 'Target not found'}`);
+          } else {
+            console.log(`  ❌ Tab ${tabIndex + 1}: Failed - ${error}`);
+          }
         } else {
-          console.log(`❌ Campaign ${index + 1} (${keyword}): Failed - ${error}`);
+          console.log(`  ❌ Tab ${tabIndex + 1}: Rejected - ${result.reason}`);
         }
-      } else {
-        console.log(`❌ Campaign ${index + 1}: Rejected - ${result.reason}`);
+      });
+      
+      console.log(`\n📈 Campaign ${configIndex + 1} Summary: ${successCount}/5 tabs successful, ${targetFoundCount} targets found`);
+      
+      // Wait a bit before moving to next keyword
+      if (configIndex < config.length - 1) {
+        console.log(`\n⏸️ Waiting 10 seconds before starting next keyword...`);
+        await delay(10000);
       }
-    });
-    
-    console.log(`\n🎉 All campaigns completed!`);
-    
-  } catch (error) {
-    console.log(`❌ Error running campaigns: ${error.message}`);
+      
+    } catch (error) {
+      console.log(`❌ Error running tabs for "${keyword}": ${error.message}`);
+    }
   }
+  
+  console.log(`\n🎉 All campaigns completed!`);
 })();
