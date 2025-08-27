@@ -502,9 +502,14 @@ function getRandomInt(min, max) {
 }
 
 const mainLogic = async () => {
-  console.log(`🚀 Starting campaigns continuously with 10 second breaks...`);
+  console.log(`🚀 Starting campaigns with counter limit of 5 times...`);
   
-  while (true) {
+  let counter = 0;
+  const maxIterations = 5;
+  
+  while (counter < maxIterations) {
+    counter++;
+    console.log(`\n🔄 Iteration ${counter}/${maxIterations}`);
     var length = config.length;
     var configIndex = getRandomInt(0, length - 1);
 
@@ -515,18 +520,20 @@ const mainLogic = async () => {
     
     console.log(`\n🎯 Starting Campaign ${configIndex + 1}: "${keyword}" with 5 tabs using different IPs`);
     
-    // Run 5 tabs simultaneously for current keyword
-    const tabPromises = [];
-    
-    for (let tabIndex = 0; tabIndex < 1; tabIndex++) {
-       // Use no proxy for now (set to null)
-       const proxy = null;
-       
-       console.log(`  📱 Tab ${tabIndex + 1}: Using proxy none`);
-       
-       const tabPromise = runCampaign(configItem, configIndex, tabIndex, proxy);
-       tabPromises.push(tabPromise);
-     }
+         // Run 5 tabs simultaneously for current keyword
+     const tabPromises = [];
+     
+     for (let tabIndex = 0; tabIndex < 1; tabIndex++) {
+        // Use different proxy for each tab to get different IPs
+        // Add some randomization to proxy selection for better distribution
+        const proxyIndex = (tabIndex + counter) % proxies.length;
+        const proxy = proxies.length > 0 ? proxies[proxyIndex] : null;
+        
+        console.log(`  📱 Tab ${tabIndex + 1}: Using proxy ${proxy ? `${proxy.server} (${proxy.username})` : 'none'}`);
+        
+        const tabPromise = runCampaign(configItem, configIndex, tabIndex, proxy);
+        tabPromises.push(tabPromise);
+      }
     
     try {
       // Wait for all 5 tabs of current keyword to complete
@@ -565,10 +572,14 @@ const mainLogic = async () => {
       console.log(`❌ Error running tabs for "${keyword}": ${error.message}`);
     }
     
-    // Wait 10 seconds before starting next campaign
-    console.log(`\n⏸️ Waiting 10 seconds before starting next campaign...`);
-    await delay(10000);
+    // Wait 10 seconds before starting next campaign (unless this is the last iteration)
+    if (counter < maxIterations) {
+      console.log(`\n⏸️ Waiting 10 seconds before starting next campaign...`);
+      await delay(10000);
+    }
   }
+  
+  console.log(`\n🎉 All ${maxIterations} iterations completed!`);
 }
 
   // console.log(`\n🎉 All campaigns completed!`);
