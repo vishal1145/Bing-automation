@@ -358,11 +358,11 @@ async function humanClick(page, element, context = 'normal') {
   await element.click({ delay: clickDelay });
   
   // Sometimes accidentally double-click (5% chance)
-  if (Math.random() < 0.05) {
-    await page.waitForTimeout(randomInt(50, 150));
-    await element.click({ delay: randomInt(50, 100) });
-    console.log(`😅 Accidental double-click for realism`);
-  }
+  // if (Math.random() < 0.05) {
+  //   await page.waitForTimeout(randomInt(50, 150));
+  //   await element.click({ delay: randomInt(50, 100) });
+  //   console.log(`😅 Accidental double-click for realism`);
+  // }
   
   // Post-click pause with natural variation
   await humanPause(page, 'clicking');
