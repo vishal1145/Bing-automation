@@ -73,7 +73,8 @@ async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
     await page.keyboard.press("Enter");
 
     // 3. Wait for results with natural reading time
-    await page.waitForSelector("li.b_algo h2 a", { timeout: 20000 });
+    // Wait for either traditional results (li.b_algo) or featured snippets (div.b_wpt_bl)
+    await page.waitForSelector("li.b_algo h2 a, div.b_wpt_bl h2 a", { timeout: 20000 });
     await humanPause(page, 'reading');
 
     // 4. Simulate human-like tab behavior (opening multiple tabs)
@@ -92,13 +93,32 @@ async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
 
     while (!targetFound && currentPage <= maxPages) {
       // Check both main result links and citation elements
-      const mainLinks = await page.$$eval("li.b_algo h2 a", els =>
+      // Handle both traditional results (li.b_algo) and featured snippets (div.b_wpt_bl)
+      let mainLinks = await page.$$eval("li.b_algo h2 a, div.b_wpt_bl h2 a", els =>
         els.map(el => ({ href: el.href, text: el.innerText, type: 'main' }))
       );
       
-      const citationElements = await page.$$eval("div.b_attribution cite", els =>
+      let citationElements = await page.$$eval("div.b_attribution cite", els =>
         els.map(el => ({ href: el.innerText, text: el.innerText, type: 'citation' }))
       );
+      
+      // Fallback: if no results found with primary selectors, try alternative selectors
+      if (mainLinks.length === 0) {
+        console.log(`⚠️ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: No results with primary selectors, trying alternatives...`);
+        
+        // Try alternative selectors for different Bing result layouts
+        const alternativeMainLinks = await page.$$eval("h2 a, .b_title a, .b_caption a", els =>
+          els.map(el => ({ href: el.href, text: el.innerText, type: 'main' }))
+        );
+        
+        if (alternativeMainLinks.length > 0) {
+          mainLinks = alternativeMainLinks;
+          console.log(`✅ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Found ${alternativeMainLinks.length} results with alternative selectors`);
+        }
+      }
+      
+      // Log what we found for debugging
+      // console.log(`🔍 Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Found ${mainLinks.length} main links and ${citationElements.length} citation elements`);
       
       const allLinks = [...mainLinks, ...citationElements];
       let foundLink = null;
@@ -129,8 +149,15 @@ async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
 
         // Find and click the target link
         if (foundLinkType === 'main') {
-          // Click on main result link
-          const allMainLinks = await page.$$("li.b_algo h2 a");
+          // Click on main result link - handle both li.b_algo and div.b_wpt_bl structures
+          let allMainLinks = await page.$$("li.b_algo h2 a, div.b_wpt_bl h2 a");
+          
+          // Fallback: if no links found with primary selectors, try alternatives
+          if (allMainLinks.length === 0) {
+            console.log(`⚠️ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: No clickable links with primary selectors, trying alternatives...`);
+            allMainLinks = await page.$$("h2 a, .b_title a, .b_caption a");
+          }
+          
           for (const link of allMainLinks) {
             let href = await link.getAttribute("href");
             if (!href) continue;
@@ -280,158 +307,163 @@ async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
               }
             }
           }
-                 } else if (foundLinkType === 'citation') {
-           // For citation elements, we need to find the parent result and click it
-           const citationElements = await page.$$("div.b_attribution cite");
-           for (const citation of citationElements) {
-             const citationText = await citation.innerText();
-             if (
-               citationText.toLowerCase().includes(targetUrl) ||
-               citationText.toLowerCase().includes(targetDomain)
-             ) {
-               try {
-                 // Find the parent result container and click the main link
-                const parentResult = await citation.evaluateHandle(el => el.closest('li.b_algo'));
-                   if (parentResult) {
+        } else if (foundLinkType === 'citation') {
+          // For citation elements, we need to find the parent result and click it
+          const citationElements = await page.$$("div.b_attribution cite");
+          for (const citation of citationElements) {
+            const citationText = await citation.innerText();
+            if (
+              citationText.toLowerCase().includes(targetUrl) ||
+              citationText.toLowerCase().includes(targetDomain)
+            ) {
+              try {
+                // Find the parent result container and click the main link
+                // Try to find parent in both li.b_algo and div.b_wpt_bl structures
+                const parentResult = await citation.evaluateHandle(el => {
+                  const liParent = el.closest('li.b_algo');
+                  const divParent = el.closest('div.b_wpt_bl');
+                  return liParent || divParent;
+                });                
+                if (parentResult) {
                   const mainLink = await parentResult.$('h2 a');
-                 if (mainLink) {
-                     // Scroll to the link with human-like movement
+                  if (mainLink) {
+                    // Scroll to the link with human-like movement
                     await mainLink.scrollIntoViewIfNeeded();
-                     await humanPause(page, 'scrolling');
-                     
-                     // Get link position for human-like mouse movement
+                    await humanPause(page, 'scrolling');
+                    
+                    // Get link position for human-like mouse movement
                     const linkBox = await mainLink.boundingBox();
-                     if (linkBox) {
-                       const targetX = linkBox.x + linkBox.width / 2;
-                       const targetY = linkBox.y + linkBox.height / 2;
-                       
-                       // Move mouse to link with natural curved path
-                       await humanMouseMove(page, targetX, targetY);
-                     }
-                     
-                     // Hover over the link with natural timing
+                    if (linkBox) {
+                      const targetX = linkBox.x + linkBox.width / 2;
+                      const targetY = linkBox.y + linkBox.height / 2;
+                      
+                      // Move mouse to link with natural curved path
+                      await humanMouseMove(page, targetX, targetY);
+                    }
+                    
+                    // Hover over the link with natural timing
                     await mainLink.hover();
-                     await humanPause(page, 'hovering');
-                     
-                     // Listen for new page/tab before clicking
-                     const pagePromise = context.waitForEvent('page');
-                     
-                     // Click with human-like behavior
+                    await humanPause(page, 'hovering');
+                    
+                    // Listen for new page/tab before clicking
+                    const pagePromise = context.waitForEvent('page');
+                    
+                    // Click with human-like behavior
                     await humanClick(page, mainLink, 'normal');
-                     
-                     // Wait for new page to open
-                     const newPage = await pagePromise;
-                     console.log(`🔄 Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: New page opened: ${newPage.url()}`);
-                     
-                     // Wait for the new page to load
-                     await newPage.waitForLoadState('domcontentloaded');
-                     await newPage.waitForTimeout(randomInt(2000, 4000));
-                     
-                     // Switch to the new page for interactions
-                     const targetPage = newPage;
-                     
-                     // Focus on the target page to ensure it's active
-                     await targetPage.bringToFront();
-                     await targetPage.waitForTimeout(randomInt(1000, 2000));
-                     
-                     targetFound = true;
-                     console.log(`🎯 Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Successfully clicked and opened target site: ${targetPage.url()}`);
-                     console.log(`🎯 Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Page title: ${await targetPage.title()}`);
-                     
-                     // 6. Enhanced random scrolling + interaction on the target page
-                     const stay =
-                       randomInt(configItem.stay_duration.min, configItem.stay_duration.max) * 1000;
-                     console.log(`🔄 Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Staying on target page for ${stay / 1000} seconds with human-like behavior...`);
+                    
+                    // Wait for new page to open
+                    const newPage = await pagePromise;
+                    console.log(`🔄 Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: New page opened: ${newPage.url()}`);
+                    
+                    // Wait for the new page to load
+                    await newPage.waitForLoadState('domcontentloaded');
+                    await newPage.waitForTimeout(randomInt(2000, 4000));
+                    
+                    // Switch to the new page for interactions
+                    const targetPage = newPage;
+                    
+                    // Focus on the target page to ensure it's active
+                    await targetPage.bringToFront();
+                    await targetPage.waitForTimeout(randomInt(1000, 2000));
+                    
+                    targetFound = true;
+                    console.log(`🎯 Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Successfully clicked and opened target site: ${targetPage.url()}`);
+                    console.log(`🎯 Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Page title: ${await targetPage.title()}`);
+                    
+                    // 6. Enhanced random scrolling + interaction on the target page
+                    const stay =
+                      randomInt(configItem.stay_duration.min, configItem.stay_duration.max) * 1000;
+                    console.log(`🔄 Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Staying on target page for ${stay / 1000} seconds with human-like behavior...`);
 
-                     const start = Date.now();
-                     let scrollCount = 0;
-                     let hoverCount = 0;
+                    const start = Date.now();
+                    let scrollCount = 0;
+                    let hoverCount = 0;
 
-                     try {
-                       while (Date.now() - start < stay) {
-                         // Check if page is still open
-                         if (targetPage.isClosed()) {
-                           console.log(`⚠️ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Target page was closed unexpectedly`);
-                           break;
-                         }
+                    try {
+                      while (Date.now() - start < stay) {
+                        // Check if page is still open
+                        if (targetPage.isClosed()) {
+                          console.log(`⚠️ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Target page was closed unexpectedly`);
+                          break;
+                        }
 
-                         // Random smooth scrolling with enhanced human-like behavior
-                         const scrolls = randomInt(2, 5);
-                         for (let i = 0; i < scrolls; i++) {
-                           if (targetPage.isClosed()) break;
-                           await smoothScroll(targetPage, randomInt(1, 3));
-                           await humanPause(targetPage, 'scrolling');
-                           scrollCount++;
-                         }
+                        // Random smooth scrolling with enhanced human-like behavior
+                        const scrolls = randomInt(2, 5);
+                        for (let i = 0; i < scrolls; i++) {
+                          if (targetPage.isClosed()) break;
+                          await smoothScroll(targetPage, randomInt(1, 3));
+                          await humanPause(targetPage, 'scrolling');
+                          scrollCount++;
+                        }
 
-                         // Random hover over various elements with natural mouse movement
-                         if (!targetPage.isClosed()) {
-                           const elements = await targetPage.$$("a, button, img, h1, h2, h3, p");
-                           if (elements.length > 0) {
-                             const hoverElements = randomInt(2, 5);
-                             for (let i = 0; i < hoverElements; i++) {
-                               if (targetPage.isClosed()) break;
-                               const el = elements[randomInt(0, elements.length - 1)];
-                               try {
-                                 await el.scrollIntoViewIfNeeded();
-                                 await humanPause(targetPage, 'scrolling');
-                                 
-                                 // Get element position for human-like mouse movement
-                                 const elBox = await el.boundingBox();
-                                 if (elBox) {
-                                   const targetX = elBox.x + elBox.width / 2;
-                                   const targetY = elBox.y + elBox.height / 2;
-                                   
-                                   // Move mouse with natural curved path
-                                   await humanMouseMove(targetPage, targetX, targetY);
-                                 }
-                                 
-                                 await el.hover();
-                                 await humanPause(targetPage, 'hovering');
-                                 hoverCount++;
-                               } catch (e) {
-                                 // ignore hover failures
-                               }
-                             }
-                           }
-                         }
+                        // Random hover over various elements with natural mouse movement
+                        if (!targetPage.isClosed()) {
+                          const elements = await targetPage.$$("a, button, img, h1, h2, h3, p");
+                          if (elements.length > 0) {
+                            const hoverElements = randomInt(2, 5);
+                            for (let i = 0; i < hoverElements; i++) {
+                              if (targetPage.isClosed()) break;
+                              const el = elements[randomInt(0, elements.length - 1)];
+                              try {
+                                await el.scrollIntoViewIfNeeded();
+                                await humanPause(targetPage, 'scrolling');
+                                
+                                // Get element position for human-like mouse movement
+                                const elBox = await el.boundingBox();
+                                if (elBox) {
+                                  const targetX = elBox.x + elBox.width / 2;
+                                  const targetY = elBox.y + elBox.height / 2;
+                                  
+                                  // Move mouse with natural curved path
+                                  await humanMouseMove(targetPage, targetX, targetY);
+                                }
+                                
+                                await el.hover();
+                                await humanPause(targetPage, 'hovering');
+                                hoverCount++;
+                              } catch (e) {
+                                // ignore hover failures
+                              }
+                            }
+                          }
+                        }
 
-                         // Enhanced random mouse movements with natural curves
-                         if (!targetPage.isClosed()) {
-                           await humanPause(targetPage, 'reading');
-                           
-                           // Use the new natural mouse movement function
-                           await naturalMouseMovement(targetPage);
-                         }
-                       }
-                     } catch (error) {
-                       console.log(`⚠️ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Error during target page interaction: ${error.message}`);
-                     }
-                     
-                     console.log(`📊 Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Session stats: ${scrollCount} scrolls, ${hoverCount} hovers`);
-                     
-                     // Close the target page only if it's still open
-                     if (!targetPage.isClosed()) {
-                       try {
-                         await targetPage.close();
-                         console.log(`🔒 Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Target page closed successfully`);
-                         // Small delay to ensure page is fully closed
-                         await delay(1000);
-                       } catch (closeError) {
-                         console.log(`⚠️ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Error closing target page: ${closeError.message}`);
-                       }
-                     }
-                     
-                     break;
-                   }
-                 }
-               } catch (error) {
-                 console.log(`⚠️ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Error clicking citation link: ${error.message}`);
-                 continue;
-               }
-             }
-           }
-         }
+                        // Enhanced random mouse movements with natural curves
+                        if (!targetPage.isClosed()) {
+                          await humanPause(targetPage, 'reading');
+                          
+                          // Use the new natural mouse movement function
+                          await naturalMouseMovement(targetPage);
+                        }
+                      }
+                    } catch (error) {
+                      console.log(`⚠️ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Error during target page interaction: ${error.message}`);
+                    }
+                    
+                    console.log(`📊 Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Session stats: ${scrollCount} scrolls, ${hoverCount} hovers`);
+                    
+                    // Close the target page only if it's still open
+                    if (!targetPage.isClosed()) {
+                      try {
+                        await targetPage.close();
+                        console.log(`🔒 Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Target page closed successfully`);
+                        // Small delay to ensure page is fully closed
+                        await delay(1000);
+                      } catch (closeError) {
+                        console.log(`⚠️ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Error closing target page: ${closeError.message}`);
+                      }
+                    }
+                    
+                    break;
+                  }
+                }
+              } catch (error) {
+                console.log(`⚠️ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Error clicking citation link: ${error.message}`);
+                continue;
+              }
+            }
+          }
+        }
       } else {
         console.log(
           `❌ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Not found on page ${currentPage}, checking next page...`
