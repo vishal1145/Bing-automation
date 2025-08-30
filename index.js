@@ -74,7 +74,7 @@ async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
 
     // 3. Wait for results with natural reading time
     // Wait for either traditional results (li.b_algo) or featured snippets (div.b_wpt_bl)
-    await page.waitForSelector("li.b_algo h2 a, div.b_wpt_bl h2 a", { timeout: 20000 });
+    await page.waitForSelector("li.b_algo h2 a, div.b_wpt_bl h2 a", { timeout: 40000 });
     await humanPause(page, 'reading');
 
     // 4. Simulate human-like tab behavior (opening multiple tabs)
@@ -187,15 +187,15 @@ async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
                   await humanMouseMove(page, targetX, targetY);
                 }
                 
-                // Hover over the link with natural timing
-                await link.hover();
-                await humanPause(page, 'hovering');
-                
-                // Listen for new page/tab before clicking
-                const pagePromise = context.waitForEvent('page');
-                
-                // Click with human-like behavior
-                await humanClick(page, link, 'normal');
+                                 // Hover over the link with natural timing
+                 await link.hover();
+                 await humanPause(page, 'micro-hover'); // Micro-pause: 0.3-1s before clicking
+                 
+                 // Listen for new page/tab before clicking
+                 const pagePromise = context.waitForEvent('page');
+                 
+                 // Click with human-like behavior
+                 await humanClick(page, link, 'normal');
                 
                 // Wait for new page to open
                 const newPage = await pagePromise;
@@ -261,6 +261,7 @@ async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
                               const targetY = elBox.y + elBox.height / 2;
                               
                               // Move mouse with natural curved path
+                              console.log(`🖱️ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Moving mouse to hover element with curved path at (${targetX}, ${targetY})`);
                               await humanMouseMove(targetPage, targetX, targetY);
                             }
                             
@@ -325,8 +326,11 @@ async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
                   return liParent || divParent;
                 });                
                 if (parentResult) {
-                  const mainLink = await parentResult.$('h2 a');
-                  if (mainLink) {
+                  // Convert handle to element and find the main link within the parent container
+                  const parentElement = await parentResult.asElement();
+                  if (parentElement) {
+                    const mainLink = await parentElement.$('h2 a');
+                    if (mainLink) {
                     // Scroll to the link with human-like movement
                     await mainLink.scrollIntoViewIfNeeded();
                     await humanPause(page, 'scrolling');
@@ -341,15 +345,15 @@ async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
                       await humanMouseMove(page, targetX, targetY);
                     }
                     
-                    // Hover over the link with natural timing
-                    await mainLink.hover();
-                    await humanPause(page, 'hovering');
-                    
-                    // Listen for new page/tab before clicking
-                    const pagePromise = context.waitForEvent('page');
-                    
-                    // Click with human-like behavior
-                    await humanClick(page, mainLink, 'normal');
+                                         // Hover over the link with natural timing
+                     await mainLink.hover();
+                     await humanPause(page, 'micro-hover'); // Micro-pause: 0.3-1s before clicking
+                     
+                     // Listen for new page/tab before clicking
+                     const pagePromise = context.waitForEvent('page');
+                     
+                     // Click with human-like behavior
+                     await humanClick(page, mainLink, 'normal');
                     
                     // Wait for new page to open
                     const newPage = await pagePromise;
@@ -415,6 +419,7 @@ async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
                                   const targetY = elBox.y + elBox.height / 2;
                                   
                                   // Move mouse with natural curved path
+                                  console.log(`🖱️ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Moving mouse to target page element with curved path at (${targetX}, ${targetY})`);
                                   await humanMouseMove(targetPage, targetX, targetY);
                                 }
                                 
@@ -453,11 +458,12 @@ async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
                         console.log(`⚠️ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Error closing target page: ${closeError.message}`);
                       }
                     }
-                    
-                    break;
                   }
+                  
+                  break;
                 }
-              } catch (error) {
+              }
+            } catch (error) {
                 console.log(`⚠️ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Error clicking citation link: ${error.message}`);
                 continue;
               }
@@ -483,8 +489,12 @@ async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
             await humanMouseMove(page, targetX, targetY);
           }
           
-          // Click with human-like behavior
-          await humanClick(page, nextButton, 'normal');
+                     // Hover first with micro-pause, then click
+           await nextButton.hover();
+           await humanPause(page, 'micro-hover'); // Micro-pause: 0.3-1s before clicking
+           
+           // Click with human-like behavior
+           await humanClick(page, nextButton, 'normal');
           
           // Wait for page to load with natural reading time
           await humanPause(page, 'reading');
