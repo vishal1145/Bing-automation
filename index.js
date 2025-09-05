@@ -92,6 +92,19 @@ async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
     );
 
     while (!targetFound && currentPage <= maxPages) {
+      // Add smooth scrolling to simulate human-like browsing behavior on each page
+      console.log(`🔄 Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Smooth scrolling on page ${currentPage} to simulate human browsing...`);
+      
+      // Perform smooth scrolling with human-like behavior
+      const scrollSteps = randomInt(2, 4); // 2-4 scroll actions per page
+      for (let scrollIndex = 0; scrollIndex < scrollSteps; scrollIndex++) {
+        await smoothScroll(page, randomInt(1, 2)); // 1-2 scroll steps per action
+        await humanPause(page, 'scrolling'); // Natural pause between scroll actions
+      }
+      
+      // Additional pause to simulate reading the page content
+      // await humanPause(page, 'reading');
+      
       // Check both main result links and citation elements
       // Handle both traditional results (li.b_algo) and featured snippets (div.b_wpt_bl)
       let mainLinks = await page.$$eval("li.b_algo h2 a, div.b_wpt_bl h2 a", els =>
@@ -668,3 +681,5 @@ const mainLogic = async () => {
 (async () => {
   await mainLogic();
 })();
+
+

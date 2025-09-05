@@ -1,25 +1,50 @@
-[{
-  "keywords": "weight loss tips",
-  "target_url": "https://www.healthline.com/",
-  "stay_duration": { "min": 165, "max": 200 }
-},
-{
-  "keywords": "exercise for fat loss",
-  "target_url": "https://www.verywellfit.com/",
-  "stay_duration": { "min": 165, "max": 200 }
-},
-{
-  "keywords": "healthy diet plans",
-  "target_url": "https://www.healthline.com/",
-  "stay_duration": { "min": 165, "max": 200 }
-},
-{
-  "keywords": "fitness motivation",
-  "target_url": "https://www.menshealth.com/",
-  "stay_duration": { "min": 165, "max": 200 }
-},
-{
-  "keywords": "nutrition facts",
-  "target_url": "https://www.nutrition.gov/",
-  "stay_duration": { "min": 165, "max": 200 }
-}]
+[
+  {
+    "keywords": "weight loss tips",
+    "target_url": "https://www.healthline.com/",
+    "stay_duration": {
+      "min": 165,
+      "max": 200
+    }
+  },
+  {
+    "keywords": "exercise for fat loss",
+    "target_url": "https://www.verywellfit.com/",
+    "stay_duration": {
+      "min": 165,
+      "max": 200
+    }
+  },
+  {
+    "keywords": "healthy diet plans",
+    "target_url": "https://www.healthline.com/",
+    "stay_duration": {
+      "min": 165,
+      "max": 200
+    }
+  },
+  {
+    "keywords": "fitness motivation",
+    "target_url": "https://www.menshealth.com/",
+    "stay_duration": {
+      "min": 165,
+      "max": 200
+    }
+  },
+  {
+    "keywords": "nutrition facts",
+    "target_url": "https://www.nutrition.gov/",
+    "stay_duration": {
+      "min": 165,
+      "max": 200
+    }
+  },
+  {
+    "keywords": "wikipediaa",
+    "target_url": "https://www.weakipedia.com/",
+    "stay_duration": {
+      "min": 170,
+      "max": 200
+    }
+  }
+]

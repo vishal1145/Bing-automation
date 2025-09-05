@@ -7,13 +7,15 @@ async function humanType(page, text) {
   const searchBox = page.locator('#sb_form_q');
   await searchBox.waitFor({ state: 'visible', timeout: 60000 });
   await searchBox.fill("");
-
+  
   // Add human-like filler words and variations
   const enhancedText = addHumanVariations(text);
   
   // Simulate partial typing, corrections, and revisions
   await simulateHumanTyping(page, searchBox, enhancedText);
   
+  //direct type keyword
+  // await searchBox.type(text);
   // Random pause after typing before hitting Enter
   await page.waitForTimeout(randomInt(800, 2000));
 }
@@ -21,16 +23,17 @@ async function humanType(page, text) {
 // Add human-like variations to search queries
 function addHumanVariations(text) {
   const variations = [
-    `what is ${text}`,
-    `how to ${text}`,
-    `best way to ${text}`,
-    `tips for ${text}`,
-    `guide to ${text}`,
-    `${text} help`,
-    `${text} advice`,
-    `learn about ${text}`,
-    `${text} examples`,
-    `${text} information`
+    // `what is ${text}`,
+    // `how to ${text}`,
+    // `best way to ${text}`,
+    // `tips for ${text}`,
+    // `guide to ${text}`,
+    // `${text} help`,
+    // `${text} advice`,
+    // `learn about ${text}`,
+    // `${text} examples`,
+    // `${text} information`,
+    `${text}`
   ];
   
   // 70% chance to use original text, 30% chance to add variations
@@ -43,7 +46,8 @@ function addHumanVariations(text) {
 
 // Simulate realistic human typing patterns with exact specifications
 async function simulateHumanTyping(page, searchBox, text) {
-  const words = text.split(' ');
+  // const words = text.split(' ');
+  const words = text;
   let currentText = '';
   
   for (let wordIndex = 0; wordIndex < words.length; wordIndex++) {
@@ -55,41 +59,41 @@ async function simulateHumanTyping(page, searchBox, text) {
       
       // EXACT SPECIFICATION: 80-300ms gaps between letters (and it varies)
       const typingDelay = randomInt(80, 300);
-      
+      await searchBox.type(char, { delay: typingDelay });
       // Occasionally make typos and correct them (8% chance)
-      if (Math.random() < 0.08) {
-        // Type wrong character
-        const wrongChar = getRandomWrongChar(char);
-        await searchBox.type(wrongChar, { delay: randomInt(50, 150) });
-        await page.waitForTimeout(randomInt(100, 300));
+      // if (Math.random() < 0.08) {
+      //   // Type wrong character
+      //   const wrongChar = getRandomWrongChar(char);
+      //   await searchBox.type(wrongChar, { delay: randomInt(50, 150) });
+      //   await page.waitForTimeout(randomInt(100, 300));
         
-        // Backspace and correct
-        await page.keyboard.press("Backspace");
-        await page.waitForTimeout(randomInt(50, 150));
-      }
+      //   // Backspace and correct
+      //   await page.keyboard.press("Backspace");
+      //   await page.waitForTimeout(randomInt(50, 150));
+      // }
       
       // Occasionally hit shift late or early (irregular capitalization)
-      if (Math.random() < 0.06) {
-        // Simulate hitting shift too early or late
-        if (Math.random() < 0.5) {
-          // Hit shift too early - capitalize next character
-          await page.keyboard.press("Shift");
-          await page.waitForTimeout(randomInt(50, 150));
-          await searchBox.type(char, { delay: typingDelay });
-          await page.keyboard.press("Shift");
-        } else {
-          // Hit shift too late - capitalize current character
-          await searchBox.type(char, { delay: typingDelay });
-          await page.waitForTimeout(randomInt(50, 150));
-          await page.keyboard.press("Backspace");
-          await page.keyboard.press("Shift");
-          await searchBox.type(char.toUpperCase(), { delay: typingDelay });
-          await page.keyboard.press("Shift");
-        }
-      } else {
-        // Type the correct character normally
-        await searchBox.type(char, { delay: typingDelay });
-      }
+      // if (Math.random() < 0.06) {
+      //   // Simulate hitting shift too early or late
+      //   if (Math.random() < 0.5) {
+      //     // Hit shift too early - capitalize next character
+      //     await page.keyboard.press("Shift");
+      //     await page.waitForTimeout(randomInt(50, 150));
+      //     await searchBox.type(char, { delay: typingDelay });
+      //     await page.keyboard.press("Shift");
+      //   } else {
+      //     // Hit shift too late - capitalize current character
+      //     await searchBox.type(char, { delay: typingDelay });
+      //     await page.waitForTimeout(randomInt(50, 150));
+      //     await page.keyboard.press("Backspace");
+      //     await page.keyboard.press("Shift");
+      //     await searchBox.type(char.toUpperCase(), { delay: typingDelay });
+      //     await page.keyboard.press("Shift");
+      //   }
+      // } else {
+      //   // Type the correct character normally
+      //   await searchBox.type(char, { delay: typingDelay });
+      // }
       
       // EXACT SPECIFICATION: Micro-pauses ~0.5–2s when thinking of the next word
       if (Math.random() < 0.05) {
@@ -98,64 +102,64 @@ async function simulateHumanTyping(page, searchBox, text) {
       }
       
       // Random pause between characters (especially after spaces/punctuation)
-      if (char === ' ' || char === '.' || char === '?' || char === '!') {
-        await page.waitForTimeout(randomInt(200, 500));
-      }
+      // if (char === ' ' || char === '.' || char === '?' || char === '!') {
+      //   await page.waitForTimeout(randomInt(200, 500));
+      // }
       
       // EXACT SPECIFICATION: Uneven rhythm: bursts of fast typing, then short stalls
-      if (Math.random() < 0.15) {
-        // Fast burst - type next few characters quickly
-        const burstLength = randomInt(2, 4);
-        const remainingChars = word.length - charIndex - 1;
-        const actualBurstLength = Math.min(burstLength, remainingChars);
+      // if (Math.random() < 0.15) {
+      //   // Fast burst - type next few characters quickly
+      //   const burstLength = randomInt(2, 4);
+      //   const remainingChars = word.length - charIndex - 1;
+      //   const actualBurstLength = Math.min(burstLength, remainingChars);
         
-        for (let burst = 1; burst <= actualBurstLength; burst++) {
-          if (charIndex + burst < word.length) {
-            const nextChar = word[charIndex + burst];
-            await searchBox.type(nextChar, { delay: randomInt(30, 80) }); // Faster typing during burst
-            charIndex++; // Skip this character in main loop
-          }
-        }
+      //   for (let burst = 1; burst <= actualBurstLength; burst++) {
+      //     if (charIndex + burst < word.length) {
+      //       const nextChar = word[charIndex + burst];
+      //       await searchBox.type(nextChar, { delay: randomInt(30, 80) }); // Faster typing during burst
+      //       charIndex++; // Skip this character in main loop
+      //     }
+      //   }
         
-        // Stall after burst
-        await page.waitForTimeout(randomInt(300, 800));
-      }
+      //   // Stall after burst
+      //   await page.waitForTimeout(randomInt(300, 800));
+      // }
     }
     
     // Add space between words
-    if (wordIndex < words.length - 1) {
-      await searchBox.type(" ", { delay: randomInt(100, 300) });
+    // if (wordIndex < words.length - 1) {
+    //   await searchBox.type(" ", { delay: randomInt(100, 300) });
       
-      // Longer pause after certain words (thinking pause)
-      if (word.toLowerCase() === 'what' || word.toLowerCase() === 'how' || word.toLowerCase() === 'best') {
-        await page.waitForTimeout(randomInt(500, 1500));
-      }
-    }
+    //   // Longer pause after certain words (thinking pause)
+    //   if (word.toLowerCase() === 'what' || word.toLowerCase() === 'how' || word.toLowerCase() === 'best') {
+    //     await page.waitForTimeout(randomInt(500, 1500));
+    //   }
+    // }
     
     // EXACT SPECIFICATION: Corrections: backspaces, highlight + retype, or leaving typos uncorrected
-    if (Math.random() < 0.12) {
-      await page.waitForTimeout(randomInt(500, 1000));
+    // if (Math.random() < 0.12) {
+    //   await page.waitForTimeout(randomInt(500, 1000));
       
-      // 60% chance to correct, 40% chance to leave typo (more realistic)
-      if (Math.random() < 0.6) {
-        // Delete last few characters
-        const deleteCount = randomInt(2, 5);
-        for (let i = 0; i < deleteCount; i++) {
-          await page.keyboard.press("Backspace");
-          await page.waitForTimeout(randomInt(50, 150));
-        }
+    //   // 60% chance to correct, 40% chance to leave typo (more realistic)
+    //   if (Math.random() < 0.6) {
+    //     // Delete last few characters
+    //     const deleteCount = randomInt(2, 5);
+    //     for (let i = 0; i < deleteCount; i++) {
+    //       await page.keyboard.press("Backspace");
+    //       await page.waitForTimeout(randomInt(50, 150));
+    //     }
         
-        // Type alternative word
-        const alternatives = getWordAlternatives(word);
-        if (alternatives.length > 0) {
-          const alternative = alternatives[randomInt(0, alternatives.length - 1)];
-          await searchBox.type(alternative, { delay: randomInt(80, 200) });
-        }
-      } else {
-        // Leave the typo (more human-like)
-        console.log(`🤔 Leaving typo uncorrected for realism`);
-      }
-    }
+    //     // Type alternative word
+    //     const alternatives = getWordAlternatives(word);
+    //     if (alternatives.length > 0) {
+    //       const alternative = alternatives[randomInt(0, alternatives.length - 1)];
+    //       await searchBox.type(alternative, { delay: randomInt(80, 200) });
+    //     }
+    //   } else {
+    //     // Leave the typo (more human-like)
+    //     console.log(`🤔 Leaving typo uncorrected for realism`);
+    //   }
+    // }
     
     // EXACT SPECIFICATION: Micro-pauses ~0.5–2s when thinking of the next word
     if (Math.random() < 0.08) {
