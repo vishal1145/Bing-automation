@@ -59,7 +59,7 @@ async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
   const page = await context.newPage();
 
   try {
-    // 1. Go to Bing
+    // 1. Go to Yahoo Search
     await page.goto("https://search.yahoo.com/", { waitUntil: "domcontentloaded" });
     
     // Human-like pause before starting to type (reading the page)
@@ -73,8 +73,8 @@ async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
     await page.keyboard.press("Enter");
 
     // 3. Wait for results with natural reading time
-    // Wait for either traditional results (li.b_algo) or featured snippets (div.b_wpt_bl)
-    await page.waitForSelector("li.b_algo h2 a, div.b_wpt_bl h2 a", { timeout: 40000 });
+    // Wait for Yahoo search results (li with compTitle options-toggle class)
+    await page.waitForSelector("li .compTitle.options-toggle", { timeout: 40000 });
     await humanPause(page, 'reading');
 
     // 4. Simulate human-like tab behavior (opening multiple tabs)
@@ -106,12 +106,12 @@ async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
       // await humanPause(page, 'reading');
       
       // Check both main result links and citation elements
-      // Handle both traditional results (li.b_algo) and featured snippets (div.b_wpt_bl)
-      let mainLinks = await page.$$eval("li.b_algo h2 a, div.b_wpt_bl h2 a", els =>
+      // Handle Yahoo search results (li with compTitle options-toggle class)
+      let mainLinks = await page.$$eval("li .compTitle.options-toggle a, li .title.fc-2015C2-imp.pt-6 a", els =>
         els.map(el => ({ href: el.href, text: el.innerText, type: 'main' }))
       );
       
-      let citationElements = await page.$$eval("div.b_attribution cite", els =>
+      let citationElements = await page.$$eval("li .compTitle.options-toggle span.d-ib.va-mid", els =>
         els.map(el => ({ href: el.innerText, text: el.innerText, type: 'citation' }))
       );
       
@@ -119,8 +119,8 @@ async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
       if (mainLinks.length === 0) {
         console.log(`⚠️ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: No results with primary selectors, trying alternatives...`);
         
-        // Try alternative selectors for different Bing result layouts
-        const alternativeMainLinks = await page.$$eval("h2 a, .b_title a, .b_caption a", els =>
+        // Try alternative selectors for different Yahoo result layouts
+        const alternativeMainLinks = await page.$$eval("li a, .title a, .title.fc-2015C2-imp.pt-6 a, h3 a", els =>
           els.map(el => ({ href: el.href, text: el.innerText, type: 'main' }))
         );
         
@@ -162,13 +162,13 @@ async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
 
         // Find and click the target link
         if (foundLinkType === 'main') {
-          // Click on main result link - handle both li.b_algo and div.b_wpt_bl structures
-          let allMainLinks = await page.$$("li.b_algo h2 a, div.b_wpt_bl h2 a");
+          // Click on main result link - handle Yahoo search result structures
+          let allMainLinks = await page.$$("li .compTitle.options-toggle a, li .title.fc-2015C2-imp.pt-6 a");
           
           // Fallback: if no links found with primary selectors, try alternatives
           if (allMainLinks.length === 0) {
             console.log(`⚠️ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: No clickable links with primary selectors, trying alternatives...`);
-            allMainLinks = await page.$$("h2 a, .b_title a, .b_caption a");
+            allMainLinks = await page.$$("li a, .title a, .title.fc-2015C2-imp.pt-6 a, h3 a");
           }
           
           for (const link of allMainLinks) {
@@ -323,7 +323,7 @@ async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
           }
         } else if (foundLinkType === 'citation') {
           // For citation elements, we need to find the parent result and click it
-          const citationElements = await page.$$("div.b_attribution cite");
+          const citationElements = await page.$$("li .compTitle.options-toggle span.d-ib.va-mid");
           for (const citation of citationElements) {
             const citationText = await citation.innerText();
             if (
@@ -332,17 +332,16 @@ async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
             ) {
               try {
                 // Find the parent result container and click the main link
-                // Try to find parent in both li.b_algo and div.b_wpt_bl structures
+                // Try to find parent in Yahoo search result structure
                 const parentResult = await citation.evaluateHandle(el => {
-                  const liParent = el.closest('li.b_algo');
-                  const divParent = el.closest('div.b_wpt_bl');
-                  return liParent || divParent;
+                  const liParent = el.closest('li');
+                  return liParent;
                 });                
                 if (parentResult) {
                   // Convert handle to element and find the main link within the parent container
                   const parentElement = await parentResult.asElement();
                   if (parentElement) {
-                    const mainLink = await parentElement.$('h2 a');
+                    const mainLink = await parentElement.$('a');
                     if (mainLink) {
                     // Scroll to the link with human-like movement
                     await mainLink.scrollIntoViewIfNeeded();
@@ -487,7 +486,7 @@ async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
         console.log(
           `❌ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Not found on page ${currentPage}, checking next page...`
         );
-        const nextButton = await page.$("a.sb_pagN");
+        const nextButton = await page.$("a.next");
         if (nextButton) {
           // Human-like pause before clicking next page
           await humanPause(page, 'thinking');

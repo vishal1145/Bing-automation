@@ -4,7 +4,7 @@ function randomInt(min, max) {
 
 // Enhanced human-like typing with all the requested features
 async function humanType(page, text) {
-  const searchBox = page.locator('#sb_form_q');
+  const searchBox = page.locator('#yschsp');
   await searchBox.waitFor({ state: 'visible', timeout: 60000 });
   await searchBox.fill("");
   

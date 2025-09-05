@@ -44,7 +44,7 @@ app.get('/', (req, res) => {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bing Automation Manager</title>
+    <title>Yahoo Automation Manager</title>
     <style>
         * {
             margin: 0;
@@ -609,7 +609,7 @@ app.get('/', (req, res) => {
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚀 Bing Automation Manager</h1>
+            <h1>🚀 Yahoo Automation Manager</h1>
             <p>Manage your automation configuration and proxy settings</p>
         </div>
         
@@ -1350,7 +1350,7 @@ app.delete('/api/proxies/:index', async (req, res) => {
 let automationProcess = null;
 
 function startAutomation() {
-    console.log('🤖 Starting Bing automation...');
+    console.log('🤖 Starting Yahoo automation...');
     
     // Spawn the index.js process
     automationProcess = spawn('node', ['index.js'], {
