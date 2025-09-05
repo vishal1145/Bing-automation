@@ -60,7 +60,7 @@ async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
 
   try {
     // 1. Go to Bing
-    await page.goto("https://www.bing.com", { waitUntil: "domcontentloaded" });
+    await page.goto("https://search.yahoo.com/", { waitUntil: "domcontentloaded" });
     
     // Human-like pause before starting to type (reading the page)
     await humanPause(page, 'reading');
