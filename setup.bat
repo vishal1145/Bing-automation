@@ -18,5 +18,8 @@ if %errorlevel% neq 0 (
 echo Installing project dependencies...
 call npm install
 
+echo Installing Playwright Chromium...
+call npx playwright install chromium
+
 echo ==== Setup complete ====
 pause
