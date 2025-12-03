@@ -13,6 +13,7 @@ app.use(express.static('public'));
 // File paths
 const CONFIG_FILE = path.join(__dirname, 'config.json');
 const PROXIES_FILE = path.join(__dirname, 'proxies.json');
+const SESSIONS_FILE = path.join(__dirname, 'sessions.log');
 
 // Helper function to read JSON file
 async function readJsonFile(filePath) {
@@ -554,6 +555,144 @@ app.get('/', (req, res) => {
             font-size: 18px;
         }
         
+        /* Details Controls Styling */
+        .details-controls {
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+        
+        .details-controls .btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* Session Detail Item Styling */
+        .session-item {
+            background: linear-gradient(145deg, #ffffff 0%, #f7fafc 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .session-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .session-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border-color: #cbd5e0;
+        }
+        
+        .session-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .session-timestamp {
+            font-weight: 600;
+            color: #1a202c;
+            font-size: 1.1em;
+            letter-spacing: -0.025em;
+        }
+        
+        .session-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .session-status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .session-status.failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .session-content {
+            color: #4a5568;
+            line-height: 1.7;
+            font-size: 15px;
+        }
+        
+        .session-content strong {
+            color: #2d3748;
+            font-weight: 600;
+        }
+        
+        .result-found {
+            color: #38a169;
+            font-weight: 700;
+        }
+        
+        .result-not-found {
+            color: #e53e3e;
+            font-weight: 700;
+        }
+        
+        .session-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .detail-group {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .detail-group h4 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .detail-group p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        
+        .no-details {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+            font-size: 18px;
+            font-weight: 500;
+        }
+        
+        .no-details .icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            display: block;
+        }
+        
         /* Field Error Styling */
         .field-error {
             color: #e53e3e;
@@ -627,6 +766,10 @@ app.get('/', (req, res) => {
                         <span class="tab-icon">🌐</span>
                         Proxy Management
                     </button>
+                    <button class="tab-button" onclick="switchTab('details')">
+                        <span class="tab-icon">📊</span>
+                        Details
+                    </button>
                 </div>
                 
                 <!-- Config Tab Content -->
@@ -690,6 +833,23 @@ app.get('/', (req, res) => {
                         
                         <div class="items-list" id="proxyList">
                             <!-- Proxy items will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Details Tab Content -->
+                <div id="details-tab" class="tab-content">
+                    <div class="section">
+                        <h2>📊 Session Details</h2>
+                        <div class="details-controls">
+                            <button class="btn btn-success" onclick="loadDetails()">
+                                <span class="tab-icon">🔄</span>
+                                Refresh Details
+                            </button>
+                        </div>
+                        
+                        <div class="items-list" id="detailsList">
+                            <!-- Session details will be loaded here -->
                         </div>
                     </div>
                 </div>
@@ -1147,6 +1307,8 @@ app.get('/', (req, res) => {
                 loadConfigs();
             } else if (tabName === 'proxy') {
                 loadProxies();
+            } else if (tabName === 'details') {
+                loadDetails();
             }
         }
 
@@ -1158,6 +1320,70 @@ app.get('/', (req, res) => {
         document.getElementById('server').addEventListener('input', () => {
             hideFieldError('server');
         });
+
+        // Load details
+        async function loadDetails() {
+            try {
+                const response = await fetch('/api/details');
+                const details = await response.json();
+                const detailsList = document.getElementById('detailsList');
+                
+                if (details.length === 0) {
+                    detailsList.innerHTML = \`
+                        <div class="no-details">
+                            <span class="icon">📭</span>
+                            No session details available
+                        </div>
+                    \`;
+                    return;
+                }
+                
+                // Reverse the array to show newest items first
+                const reversedDetails = details.slice().reverse();
+                
+                detailsList.innerHTML = reversedDetails.map((detail, originalIndex) => {
+                    const index = details.length - 1 - originalIndex;
+                    const timestamp = new Date(detail.timestamp).toLocaleString();
+                    const statusClass = detail.targetFound ? 'success' : 'failed';
+                    const statusText = detail.targetFound ? 'Success' : 'Failed';
+                    
+                    return \`
+                    <div class="session-item" id="detail-\${index}">
+                        <div class="session-header">
+                            <div class="session-timestamp">\${timestamp}</div>
+                            <div class="session-status \${statusClass}">\${statusText}</div>
+                        </div>
+                        <div class="session-content">
+                            <strong>Keyword:</strong> \${detail.keyword}<br>
+                            <strong>Target URL:</strong> \${detail.target_url || 'N/A'}<br>
+                            <strong>Result:</strong> <span class="\${detail.targetFound ? 'result-found' : 'result-not-found'}">\${detail.targetFound ? 'Found' : 'Not Found'}</span>
+                        </div>
+                        <div class="session-details">
+                            <div class="detail-group">
+                                <h4>User Agent</h4>
+                                <p>\${detail.userAgent}</p>
+                            </div>
+                            <div class="detail-group">
+                                <h4>Proxy Details</h4>
+                                <p><strong>Server:</strong> \${detail.proxy.server}</p>
+                                <p><strong>Username:</strong> \${detail.proxy.username}</p>
+                                <p><strong>Password:</strong> ••••••••</p>
+                            </div>
+                        </div>
+                    </div>
+                \`;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading details:', error);
+                const detailsList = document.getElementById('detailsList');
+                detailsList.innerHTML = \`
+                    <div class="no-details">
+                        <span class="icon">❌</span>
+                        Error loading session details
+                    </div>
+                \`;
+            }
+        }
 
         // Load data on page load
         loadConfigs();
@@ -1343,6 +1569,47 @@ app.delete('/api/proxies/:index', async (req, res) => {
         }
     } catch (error) {
         res.status(500).json({ error: 'Failed to delete proxy' });
+    }
+});
+
+// API Route for Session Details
+app.get('/api/details', async (req, res) => {
+    try {
+        const data = await fs.readFile(SESSIONS_FILE, 'utf8');
+        const lines = data.trim().split('\n').filter(line => line.trim() !== '');
+        
+        if (lines.length === 0) {
+            return res.json([]);
+        }
+        
+        const details = lines.map(line => {
+            try {
+                // Extract timestamp and JSON data
+                const match = line.match(/^\[(.*?)\]\s*(.*)$/);
+                if (match) {
+                    const timestamp = match[1];
+                    const jsonData = JSON.parse(match[2]);
+                    return {
+                        timestamp: timestamp,
+                        ...jsonData
+                    };
+                }
+                return null;
+            } catch (error) {
+                console.error('Error parsing session line:', error);
+                return null;
+            }
+        }).filter(detail => detail !== null);
+        
+        res.json(details);
+    } catch (error) {
+        if (error.code === 'ENOENT') {
+            // File doesn't exist, return empty array
+            res.json([]);
+        } else {
+            console.error('Error reading sessions file:', error);
+            res.status(500).json({ error: 'Failed to read session details' });
+        }
     }
 });
 

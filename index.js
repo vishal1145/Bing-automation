@@ -528,7 +528,7 @@ async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
     }
 
     // 8. Log session
-    logSession({ keyword, userAgent, proxy, targetFound, tabIndex });
+    logSession({ keyword, userAgent, proxy, targetFound, tabIndex, target_url: configItem.target_url });
 
     // 9. Close browser properly - ensure all pages are closed first
     try {
@@ -559,7 +559,7 @@ async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
       }
     }
 
-    return { success: true, keyword, targetFound, tabIndex };
+    return { success: true, keyword, targetFound, tabIndex, target_url: configItem.target_url };
 
   } catch (error) {
     console.log(`❌ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Fatal error: ${error.message}`);
@@ -585,7 +585,7 @@ async function runCampaign(configItem, campaignIndex, tabIndex, proxy) {
       console.log(`⚠️ Campaign ${campaignIndex + 1}, Tab ${tabIndex + 1}: Error closing browser after fatal error: ${e.message}`);
     }
     
-    return { success: false, keyword, error: error.message, tabIndex };
+    return { success: false, keyword, error: error.message, tabIndex, target_url: configItem.target_url };
   }
 }
 
